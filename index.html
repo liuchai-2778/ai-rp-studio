@@ -1,634 +1,339 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>RP Studio</title>
-  <style>
-    :root {
-      --bg: #131314;
-      --surface: #1e1f20;
-      --elevated: #282a2c;
-      --glass: rgba(30, 31, 32, 0.78);
-      --modal: rgba(24, 25, 27, 0.95);
-      --border: rgba(255, 255, 255, 0.09);
-      --border-strong: rgba(255, 255, 255, 0.16);
-      --text: #e3e3e3;
-      --sub: #9aa0a6;
-      --muted: #6e747a;
-      --accent: #a8c7fa;
-      --accent-bg: rgba(168, 199, 250, 0.15);
-      --danger: #f28b82;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    html, body {
-      width: 100%; height: 100%; height: 100dvh; overflow: hidden;
-      background: var(--bg); color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
-      font-size: 15px; line-height: 1.6;
-    }
-    #app-bg { position: fixed; inset: 0; z-index: 0; background: var(--bg) center/cover no-repeat; }
-    #app-bg::after { content: ""; position: absolute; inset: 0; background: rgba(19, 19, 20, 0.74); }
-    #app {
-      position: relative; z-index: 1; display: flex; flex-direction: column;
-      width: 100%; height: 100%; height: 100dvh; max-width: 820px; margin: 0 auto;
-    }
-    .glass {
-      background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--border);
-    }
-    .topbar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 14px; margin: 8px 10px 0; border-radius: 999px; flex-shrink: 0;
-    }
-    .topbar-left { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
-    .room-title { font-size: 14px; font-weight: 600; white-space: nowrap; }
-    .room-sub { font-size: 11.5px; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .nav-btns { display: flex; gap: 2px; flex-shrink: 0; }
-    .nav-btn {
-      background: transparent; border: 1px solid transparent; color: var(--sub);
-      padding: 5px 10px; border-radius: 999px; font-size: 13px; cursor: pointer;
-    }
-    .nav-btn:active { color: var(--text); background: rgba(255,255,255,0.08); }
-    .nav-btn.hl { color: var(--accent); background: var(--accent-bg); }
-    #chat-container {
-      flex: 1; overflow-y: auto; padding: 16px 14px 20px;
-      display: flex; flex-direction: column; gap: 16px; -webkit-overflow-scrolling: touch;
-    }
-    .divider { text-align: center; font-size: 11px; color: var(--muted); padding: 4px 0; border-bottom: 1px dashed var(--border); }
-    .msg-row { display: flex; gap: 10px; align-items: flex-start; }
-    .msg-row.archived { opacity: 0.5; }
-    .msg-row.user { flex-direction: row-reverse; }
-    .msg-row.narrator { justify-content: center; }
-    .avatar {
-      width: 34px; height: 34px; border-radius: 50%; object-fit: cover;
-      background: var(--elevated); border: 1px solid var(--border-strong);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 600; color: var(--accent); flex-shrink: 0;
-    }
-    .msg-main { max-width: calc(100% - 46px); display: flex; flex-direction: column; gap: 4px; }
-    .msg-row.user .msg-main { align-items: flex-end; max-width: 82%; }
-    .msg-row.narrator .msg-main { max-width: 96%; width: 100%; }
-    .msg-sender { font-size: 12px; color: var(--sub); padding: 0 4px; }
-    .bubble {
-      padding: 10px 15px; border-radius: 18px; font-size: 15px; line-height: 1.65;
-      color: var(--text); word-break: break-word; white-space: pre-wrap; cursor: pointer;
-      background: rgba(30, 31, 32, 0.7); border: 1px solid var(--border);
-    }
-    .msg-row.char .bubble { border-top-left-radius: 6px; }
-    .msg-row.user .bubble { background: #2b2d30; border-color: var(--border-strong); border-top-right-radius: 6px; }
-    .msg-row.narrator .bubble { background: rgba(38, 40, 44, 0.55); border-radius: 12px; color: #c4c7c5; font-size: 14px; }
-    .bubble em.act { color: var(--sub); font-style: italic; }
-    .msg-actions { display: none; gap: 12px; padding: 2px 6px 0; }
-    .msg-row.selected .msg-actions { display: flex; }
-    .msg-row.selected .bubble { border-color: var(--accent); }
-    .act-btn { background: none; border: none; color: var(--sub); font-size: 12px; cursor: pointer; }
-    .act-btn.danger { color: var(--danger); }
-    .bottom-area { padding: 6px 10px 10px; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
-    .strip { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 0 2px; }
-    .strip::-webkit-scrollbar { display: none; }
-    .chip {
-      padding: 4px 12px; border-radius: 999px; font-size: 12px; color: var(--sub);
-      background: var(--surface); border: 1px solid var(--border); cursor: pointer; white-space: nowrap;
-    }
-    .chip.active { color: #0b121e; background: var(--accent); border-color: var(--accent); font-weight: 600; }
-    .chip.ghost { color: var(--accent); background: var(--accent-bg); }
-    .input-box { display: flex; align-items: flex-end; gap: 8px; padding: 8px 10px 8px 16px; border-radius: 26px; }
-    #user-input {
-      flex: 1; background: transparent; border: none; outline: none; color: var(--text);
-      font-size: 15px; line-height: 1.5; max-height: 110px; min-height: 24px; resize: none; font-family: inherit;
-    }
-    .send-btn {
-      width: 34px; height: 34px; border-radius: 50%; border: none;
-      background: var(--accent); color: #0b121e; font-weight: 700; font-size: 13px;
-      display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
-    }
-    .send-btn.stop { background: var(--danger); color: #1f0909; }
-    .modal-mask {
-      position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.65);
-      backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; padding: 12px;
-    }
-    .modal-mask.show { display: flex; }
-    .modal-card {
-      width: 100%; max-width: 540px; max-height: 86dvh; background: var(--modal);
-      border: 1px solid var(--border-strong); border-radius: 22px; display: flex; flex-direction: column; overflow: hidden;
-    }
-    .modal-head {
-      padding: 14px 18px; border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .modal-title { font-size: 15px; font-weight: 600; }
-    .close-btn { background: none; border: none; color: var(--sub); font-size: 13px; cursor: pointer; padding: 4px 8px; }
-    .modal-body { padding: 16px 18px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-    .field { display: flex; flex-direction: column; gap: 5px; }
-    .field label { font-size: 12px; color: var(--sub); }
-    .input, .textarea {
-      width: 100%; background: var(--surface); border: 1px solid var(--border-strong);
-      border-radius: 10px; padding: 9px 12px; color: var(--text); font-size: 14px; font-family: inherit; outline: none;
-    }
-    .textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
-    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; }
-    .btn {
-      background: var(--elevated); border: 1px solid var(--border-strong); color: var(--text);
-      padding: 7px 14px; border-radius: 999px; font-size: 13px; cursor: pointer;
-    }
-    .btn.primary { background: var(--accent); color: #0b121e; border-color: var(--accent); font-weight: 600; }
-    .btn.danger { background: rgba(242,139,130,0.14); color: var(--danger); border-color: rgba(242,139,130,0.3); }
-    .card-item {
-      background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
-      padding: 12px; display: flex; flex-direction: column; gap: 8px;
-    }
-    .note { font-size: 12px; color: var(--sub); background: rgba(255,255,255,0.04); padding: 10px; border-radius: 10px; }
-  </style>
-  <script>
-    window.onerror = function(msg, url, line) {
-      alert("代码粘贴可能不完整，脚本报错 (第 " + line + " 行): " + msg);
-    };
-  </script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<title>RP Studio</title>
+<style>
+:root{--bg:#131314;--sf:#1e1f20;--el:#282a2c;--gl:rgba(30,31,32,0.82);--bd:rgba(255,255,255,0.1);--bds:rgba(255,255,255,0.18);--tx:#e3e3e3;--sub:#9aa0a6;--ac:#a8c7fa;--acb:rgba(168,199,250,0.15);--dg:#f28b82}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;height:100dvh;overflow:hidden;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;font-size:15px;line-height:1.6}
+#app{display:flex;flex-direction:column;width:100%;height:100%;height:100dvh;max-width:800px;margin:0 auto}
+.glass{background:var(--gl);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--bd)}
+.top{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;margin:8px 10px 0;border-radius:999px;flex-shrink:0}
+.top-l{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ac);flex-shrink:0}
+.r-title{font-size:14px;font-weight:600;white-space:nowrap}
+.r-sub{font-size:11.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.navs{display:flex;gap:2px;flex-shrink:0}
+.nbtn{background:none;border:none;color:var(--sub);padding:5px 10px;border-radius:999px;font-size:13px;cursor:pointer}
+.nbtn:active{background:rgba(255,255,255,0.08);color:var(--tx)}
+#chat{flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:14px;-webkit-overflow-scrolling:touch}
+.divd{text-align:center;font-size:11px;color:var(--sub);padding:4px 0;border-bottom:1px dashed var(--bd)}
+.row{display:flex;gap:10px;align-items:flex-start}
+.row.arch{opacity:0.45}
+.row.user{flex-direction:row-reverse}
+.row.nar{justify-content:center}
+.av{width:34px;height:34px;border-radius:50%;background:var(--el);border:1px solid var(--bds);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--ac);flex-shrink:0}
+.mmain{max-width:calc(100% - 46px);display:flex;flex-direction:column;gap:4px}
+.row.user .mmain{align-items:flex-end;max-width:82%}
+.row.nar .mmain{max-width:96%;width:100%}
+.msend{font-size:12px;color:var(--sub);padding:0 4px}
+.bub{padding:10px 14px;border-radius:18px;font-size:15px;line-height:1.65;word-break:break-word;white-space:pre-wrap;cursor:pointer;background:var(--sf);border:1px solid var(--bd)}
+.row.char .bub{border-top-left-radius:5px}
+.row.user .bub{background:#2b2d30;border-color:var(--bds);border-top-right-radius:5px}
+.row.nar .bub{background:rgba(38,40,44,0.55);border-radius:12px;color:#c4c7c5;font-size:14px}
+.bub em{color:var(--sub);font-style:italic}
+.macts{display:none;gap:12px;padding:2px 6px 0}
+.row.sel .macts{display:flex}
+.row.sel .bub{border-color:var(--ac)}
+.abtn{background:none;border:none;color:var(--sub);font-size:12px;cursor:pointer}
+.abtn.dg{color:var(--dg)}
+.bot{padding:6px 10px 10px;display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+.strip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.strip::-webkit-scrollbar{display:none}
+.chip{padding:4px 12px;border-radius:999px;font-size:12px;color:var(--sub);background:var(--sf);border:1px solid var(--bd);cursor:pointer;white-space:nowrap}
+.chip.on{color:#0b121e;background:var(--ac);border-color:var(--ac);font-weight:600}
+.chip.gh{color:var(--ac);background:var(--acb)}
+.ibox{display:flex;align-items:flex-end;gap:8px;padding:8px 10px 8px 16px;border-radius:26px}
+#uin{flex:1;background:none;border:none;outline:none;color:var(--tx);font-size:15px;line-height:1.5;max-height:100px;min-height:24px;resize:none;font-family:inherit}
+.sbtn{width:34px;height:34px;border-radius:50%;border:none;background:var(--ac);color:#0b121e;font-weight:700;cursor:pointer;flex-shrink:0}
+.sbtn.stop{background:var(--dg)}
+.mask{position:fixed;inset:0;z-index:99;background:rgba(0,0,0,0.65);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:12px}
+.mask.show{display:flex}
+.mcard{width:100%;max-width:520px;max-height:85dvh;background:#18191b;border:1px solid var(--bds);border-radius:20px;display:flex;flex-direction:column;overflow:hidden}
+.mhead{padding:13px 16px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.mbody{padding:14px 16px 18px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld label{font-size:12px;color:var(--sub)}
+.inp,.ta{width:100%;background:var(--sf);border:1px solid var(--bds);border-radius:10px;padding:8px 11px;color:var(--tx);font-size:14px;font-family:inherit;outline:none}
+.ta{min-height:76px;resize:vertical}
+.brow{display:flex;flex-wrap:wrap;gap:8px}
+.btn{background:var(--el);border:1px solid var(--bds);color:var(--tx);padding:6px 13px;border-radius:999px;font-size:13px;cursor:pointer}
+.btn.pri{background:var(--ac);color:#0b121e;border-color:var(--ac);font-weight:600}
+.btn.dg{color:var(--dg);border-color:rgba(242,139,130,0.3)}
+.citem{background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:6px}
+</style>
 </head>
 <body>
-  <div id="app-bg"></div>
-  <div id="app">
-    <header class="topbar glass">
-      <div class="topbar-left">
-        <span class="dot"></span>
-        <span class="room-title" id="room-title-text">未就绪</span>
-        <span class="room-sub" id="room-members-text">若一直显示此字说明底部代码未粘贴完整</span>
-      </div>
-      <nav class="nav-btns">
-        <button class="nav-btn" type="button" onclick="openModal('char-modal')">角色</button>
-        <button class="nav-btn" type="button" onclick="openModal('world-modal')">世界</button>
-        <button class="nav-btn" type="button" id="memory-nav-btn" onclick="openModal('memory-modal')">记忆</button>
-        <button class="nav-btn" type="button" onclick="openModal('settings-modal')">设置</button>
-      </nav>
-    </header>
-
-    <main id="chat-container" onclick="clearSelection()"></main>
-
-    <footer class="bottom-area">
-      <div class="strip" id="speaker-strip"></div>
-      <div class="input-box glass">
-        <textarea id="user-input" rows="1" placeholder="输入对话或行动（*星号* 表示神态动作）"></textarea>
-        <button class="send-btn" type="button" id="send-btn" onclick="handleSendOrStop()">↑</button>
-      </div>
-    </footer>
-  </div>
-
-  <!-- 角色弹窗 -->
-  <div class="modal-mask" id="char-modal">
-    <div class="modal-card">
-      <div class="modal-head">
-        <span class="modal-title">角色管理与编队</span>
-        <button class="close-btn" type="button" onclick="closeModal('char-modal')">关闭</button>
-      </div>
-      <div class="modal-body">
-        <div class="btn-row">
-          <button class="btn primary" type="button" onclick="openCharEditor(null)">新建角色</button>
-          <button class="btn" type="button" onclick="document.getElementById('char-file-input').click()">导入 JSON / TXT</button>
-          <button class="btn" type="button" onclick="exportAllCharacters()">导出备份</button>
-          <input type="file" id="char-file-input" accept=".json,.txt,.md" multiple style="display:none" onchange="importCharacterFiles(event)" />
-        </div>
-        <div id="char-editor-panel" style="display:none;background:var(--bg);padding:12px;border-radius:14px;border:1px solid var(--border-strong);flex-direction:column;gap:8px;">
-          <input type="hidden" id="edit-char-id" />
-          <div class="field"><label>名称</label><input class="input" id="edit-char-name" /></div>
-          <div class="field"><label>设定与性格 (description)</label><textarea class="textarea" id="edit-char-desc"></textarea></div>
-          <div class="field"><label>扮演指令 (system_prompt)</label><textarea class="textarea" id="edit-char-prompt"></textarea></div>
-          <div class="field"><label>开场白 (first_mes)</label><textarea class="textarea" id="edit-char-firstmes"></textarea></div>
-          <div class="btn-row">
-            <button class="btn primary" type="button" onclick="saveCharacterFromEditor()">保存</button>
-            <button class="btn" type="button" onclick="document.getElementById('char-editor-panel').style.display='none'">取消</button>
-          </div>
-        </div>
-        <div id="char-list-container" style="display:flex;flex-direction:column;gap:8px;"></div>
-      </div>
+<div id="app">
+  <header class="top glass">
+    <div class="top-l"><span class="dot"></span><span class="r-title" id="rt">加载中</span><span class="r-sub" id="rs"></span></div>
+    <nav class="navs">
+      <button class="nbtn" type="button" onclick="openM('m-char')">角色</button>
+      <button class="nbtn" type="button" onclick="openM('m-world')">世界</button>
+      <button class="nbtn" type="button" onclick="openM('m-mem')">记忆</button>
+      <button class="nbtn" type="button" onclick="openM('m-set')">设置</button>
+    </nav>
+  </header>
+  <main id="chat" onclick="sel(-1)"></main>
+  <footer class="bot">
+    <div class="strip" id="strip"></div>
+    <div class="ibox glass">
+      <textarea id="uin" rows="1" placeholder="输入对话或行动（*星号* 表示动作神态）"></textarea>
+      <button class="sbtn" type="button" id="sbtn" onclick="sendOrStop()">↑</button>
     </div>
-  </div>
+  </footer>
+</div>
 
-  <!-- 世界观弹窗 -->
-  <div class="modal-mask" id="world-modal">
-    <div class="modal-card">
-      <div class="modal-head">
-        <span class="modal-title">世界观与玩家设定</span>
-        <button class="close-btn" type="button" onclick="closeModal('world-modal')">关闭</button>
-      </div>
-      <div class="modal-body">
-        <div class="btn-row">
-          <button class="btn" type="button" onclick="document.getElementById('world-file-input').click()">导入世界观文件</button>
-          <input type="file" id="world-file-input" accept=".json,.txt,.md" style="display:none" onchange="importWorldFile(event)" />
-        </div>
-        <div class="field"><label>你的称呼 ({{user}})</label><input class="input" id="user-name-input" /></div>
-        <div class="field"><label>你的设定 (User Persona)</label><textarea class="textarea" id="user-persona-input"></textarea></div>
-        <div class="field"><label>全局世界观与文游规则</label><textarea class="textarea" id="world-global-input"></textarea></div>
-        <div class="field"><label>关键词动态词条 (JSON)</label><textarea class="textarea" id="world-entries-input" style="font-family:monospace;font-size:12px;"></textarea></div>
-        <button class="btn primary" type="button" onclick="saveWorldSettings()">保存设定</button>
-      </div>
+<div class="mask" id="m-char"><div class="mcard">
+  <div class="mhead"><span>角色管理与编队</span><button class="abtn" onclick="closeM('m-char')">关闭</button></div>
+  <div class="mbody">
+    <div class="brow">
+      <button class="btn pri" onclick="editC(null)">新建角色</button>
+      <button class="btn" onclick="$('cf').click()">导入 JSON/TXT</button>
+      <button class="btn" onclick="dl(S.chars,'chars.json')">导出全部</button>
+      <input type="file" id="cf" accept=".json,.txt,.md" multiple style="display:none" onchange="impC(event)"/>
     </div>
-  </div>
-
-  <!-- 记忆压缩弹窗 -->
-  <div class="modal-mask" id="memory-modal">
-    <div class="modal-card">
-      <div class="modal-head">
-        <span class="modal-title">上下文压缩与记忆摘要</span>
-        <button class="close-btn" type="button" onclick="closeModal('memory-modal')">关闭</button>
-      </div>
-      <div class="modal-body">
-        <div class="note" id="memory-status-note"></div>
-        <div class="btn-row">
-          <button class="btn primary" type="button" id="compress-btn" onclick="compressOldContext(false)">立即调用 AI 压缩早期对话</button>
-          <button class="btn" type="button" onclick="unarchiveAllMessages()">恢复全部归档</button>
-        </div>
-        <div class="field">
-          <label>保留最近对话条数（更早的对话将被压缩为摘要，防 Token 爆炸）</label>
-          <input class="input" type="number" id="keep-recent-input" value="10" />
-        </div>
-        <div class="field">
-          <label>常驻前情提要 / 剧情摘要</label>
-          <textarea class="textarea" id="story-summary-input" style="min-height:130px;"></textarea>
-        </div>
-        <button class="btn primary" type="button" onclick="saveMemorySettings()">保存记忆设置</button>
-      </div>
+    <div id="ced" style="display:none;flex-direction:column;gap:8px;padding:10px;background:var(--bg);border-radius:12px;border:1px solid var(--bds)">
+      <input type="hidden" id="cid"/>
+      <div class="fld"><label>名称</label><input class="inp" id="cname"/></div>
+      <div class="fld"><label>设定与性格 (description)</label><textarea class="ta" id="cdesc"></textarea></div>
+      <div class="fld"><label>扮演指令 (system_prompt)</label><textarea class="ta" id="cprompt"></textarea></div>
+      <div class="fld"><label>开场白 (first_mes)</label><textarea class="ta" id="cfirst"></textarea></div>
+      <div class="brow"><button class="btn pri" onclick="saveC()">保存角色</button><button class="btn" onclick="$('ced').style.display='none'">取消</button></div>
     </div>
+    <div id="clist" style="display:flex;flex-direction:column;gap:8px"></div>
   </div>
+</div></div>
 
-  <!-- 设置弹窗 -->
-  <div class="modal-mask" id="settings-modal">
-    <div class="modal-card">
-      <div class="modal-head">
-        <span class="modal-title">接口与全局设置</span>
-        <button class="close-btn" type="button" onclick="closeModal('settings-modal')">关闭</button>
-      </div>
-      <div class="modal-body">
-        <div class="btn-row">
-          <button class="btn" type="button" onclick="fillPreset('https://api.deepseek.com/v1','deepseek-chat')">DeepSeek V3</button>
-          <button class="btn" type="button" onclick="fillPreset('https://api.deepseek.com/v1','deepseek-reasoner')">DeepSeek R1</button>
-          <button class="btn" type="button" onclick="fillPreset('https://api.siliconflow.cn/v1','deepseek-ai/DeepSeek-V3')">硅基流动</button>
-        </div>
-        <div class="field"><label>API Base URL</label><input class="input" id="api-url-input" /></div>
-        <div class="field"><label>API Key</label><input class="input" type="password" id="api-key-input" placeholder="sk-..." /></div>
-        <div class="field"><label>Model</label><input class="input" id="api-model-input" /></div>
-        <div class="field"><label>Temperature</label><input class="input" type="number" step="0.05" id="api-temp-input" /></div>
-        <div class="btn-row">
-          <button class="btn" type="button" onclick="exportChatHistory()">导出存档</button>
-          <button class="btn danger" type="button" onclick="clearChatHistory()">清空重开</button>
-        </div>
-        <button class="btn primary" type="button" onclick="saveApiSettings()">保存设置</button>
-      </div>
+<div class="mask" id="m-world"><div class="mcard">
+  <div class="mhead"><span>世界观与玩家设定</span><button class="abtn" onclick="closeM('m-world')">关闭</button></div>
+  <div class="mbody">
+    <div class="brow">
+      <button class="btn" onclick="$('wf').click()">导入世界观 (.json/.txt)</button>
+      <input type="file" id="wf" accept=".json,.txt,.md" style="display:none" onchange="impW(event)"/>
     </div>
+    <div class="fld"><label>你的称呼 ({{user}})</label><input class="inp" id="uname"/></div>
+    <div class="fld"><label>你的设定 (User Persona)</label><textarea class="ta" id="upersona"></textarea></div>
+    <div class="fld"><label>全局世界观与文游规则</label><textarea class="ta" id="wglob"></textarea></div>
+    <button class="btn pri" onclick="saveW()">保存设定</button>
   </div>
+</div></div>
 
-  <!-- 编辑弹窗 -->
-  <div class="modal-mask" id="text-editor-modal">
-    <div class="modal-card">
-      <div class="modal-head">
-        <span class="modal-title" id="text-editor-title">编辑</span>
-        <button class="close-btn" type="button" onclick="closeModal('text-editor-modal')">取消</button>
-      </div>
-      <div class="modal-body">
-        <textarea class="textarea" id="text-editor-textarea" style="min-height:140px;"></textarea>
-        <button class="btn primary" type="button" onclick="confirmTextEditorModal()">确认</button>
-      </div>
+<div class="mask" id="m-mem"><div class="mcard">
+  <div class="mhead"><span>上下文压缩 (防 Token 爆炸)</span><button class="abtn" onclick="closeM('m-mem')">关闭</button></div>
+  <div class="mbody">
+    <div style="font-size:12px;color:var(--sub)" id="minfo"></div>
+    <div class="brow">
+      <button class="btn pri" id="cbtn" onclick="compress()">立即调用 AI 压缩早期对话</button>
+      <button class="btn" onclick="unarch()">恢复全部归档</button>
     </div>
+    <div class="fld"><label>保留最近条数（更早的对话将提炼为摘要，不再发给API）</label><input class="inp" type="number" id="mkeep"/></div>
+    <div class="fld"><label>常驻前情提要 / 剧情摘要</label><textarea class="ta" id="msum" style="min-height:120px"></textarea></div>
+    <button class="btn pri" onclick="saveM()">保存记忆设置</button>
   </div>
+</div></div>
 
-  <script>
-    var DEFAULT_CHARS = [
-      {
-        id: 'char_kael',
-        name: '凯尔',
-        description: '成年男性黑豹兽人，身高近两米，覆着紧实油亮的黑毛，肩背宽阔，体格极具爆发力与压迫感。暗金色竖瞳，左耳有一道旧伤缺口，黑豹长尾低垂摆动。前边境精锐斥候，现为独行佣兵。性格沉稳冷峻、寡言重诺，对认可的搭档极为护短。',
-        system_prompt: '你扮演男性黑豹兽人「凯尔」。说话简练低沉，善于通过黑豹兽耳的转动、金色竖瞳的收缩、长尾的摆动或喉咙低吼展现情绪变化。神态动作请放在 *星号* 之间。',
-        first_mes: '*篝火噼啪作响，高大的黑豹兽人坐在阴影与火光的交界处，正用鹿皮慢条斯理地擦拭着战术直刀。听到脚步声，他那只带着旧伤缺口的黑色兽耳微微一动，暗金色的竖瞳抬起看向你，身后的长尾在地面上轻轻扫过* 醒了？守夜算我的，把水囊拿去，半小时后出发。',
-        inRoom: true
-      },
-      {
-        id: 'char_narrator',
-        name: '旁白',
-        description: '负责客观推进文游剧情、描绘环境氛围、判定行动结果以及扮演其它NPC的叙事者。',
-        system_prompt: '你是文游的客观旁白与DM。请用克制、有画面感的笔触描绘场景与剧情发展，绝不代替玩家说话或做决定。',
-        first_mes: '夜色笼罩着荒原边缘的旧营地，冷风掠过枯草，远处的山脊在月光下显出沉默的轮廓。',
-        inRoom: true
-      }
-    ];
+<div class="mask" id="m-set"><div class="mcard">
+  <div class="mhead"><span>接口与全局设置</span><button class="abtn" onclick="closeM('m-set')">关闭</button></div>
+  <div class="mbody">
+    <div class="brow">
+      <button class="btn" onclick="preset('https://api.deepseek.com/v1','deepseek-chat')">DeepSeek V3</button>
+      <button class="btn" onclick="preset('https://api.deepseek.com/v1','deepseek-reasoner')">DeepSeek R1</button>
+      <button class="btn" onclick="preset('https://api.siliconflow.cn/v1','deepseek-ai/DeepSeek-V3')">硅基流动</button>
+    </div>
+    <div class="fld"><label>API Base URL</label><input class="inp" id="aurl"/></div>
+    <div class="fld"><label>API Key</label><input class="inp" type="password" id="akey" placeholder="sk-..."/></div>
+    <div class="fld"><label>Model</label><input class="inp" id="amodel"/></div>
+    <div class="fld"><label>Temperature</label><input class="inp" type="number" step="0.05" id="atemp"/></div>
+    <div class="brow">
+      <button class="btn" onclick="dl(S,'rp_save.json')">导出存档</button>
+      <button class="btn dg" onclick="resetChat()">清空重开</button>
+    </div>
+    <button class="btn pri" onclick="saveSet()">保存设置</button>
+  </div>
+</div></div>
 
-    var DEFAULT_STATE = {
-      api: { baseUrl: 'https://api.deepseek.com/v1', apiKey: '', model: 'deepseek-chat', temperature: 0.85 },
-      memory: { summary: '', keepRecent: 10 },
-      user: { name: '搭档', persona: '与凯尔同行的搭档，正在共同执行横跨荒原的委托。' },
-      world: { globalPrompt: '硬派奇幻冒险世界，注重环境氛围与兽人动作细节描写。', entries: [] },
-      activeSpeakerId: 'char_kael',
-      characters: DEFAULT_CHARS,
-      messages: [
-        { id: 'm1', role: 'narrator', senderId: 'char_narrator', senderName: '旁白', content: DEFAULT_CHARS[1].first_mes, archived: false },
-        { id: 'm2', role: 'char', senderId: 'char_kael', senderName: '凯尔', content: DEFAULT_CHARS[0].first_mes, archived: false }
-      ]
-    };
+<div class="mask" id="m-ed"><div class="mcard">
+  <div class="mhead"><span id="ed-t">编辑</span><button class="abtn" onclick="closeM('m-ed')">取消</button></div>
+  <div class="mbody">
+    <textarea class="ta" id="ed-ta" style="min-height:140px"></textarea>
+    <button class="btn pri" onclick="saveEd()">确认</button>
+  </div>
+</div></div>
 
-    var STORAGE_KEY = 'RP_STUDIO_V4';
-    var state = loadState();
-    var isGenerating = false;
-    var abortCtrl = null;
-    var selectedIdx = -1;
-    var editorMode = { type: 'edit', index: -1 };
+<script>
+var $=function(id){return document.getElementById(id)};
+var DEF_CHARS=[
+  {id:'c_kael',name:'凯尔',desc:'成年男性黑豹兽人，身高近两米，覆着紧实油亮的黑毛，肩背宽阔，体格极具爆发力与压迫感。暗金色竖瞳，左耳有一道旧伤缺口，黑豹长尾低垂摆动。前边境精锐斥候，现为独行佣兵。性格沉稳冷峻、寡言重诺，对认可的搭档极为护短。',prompt:'你扮演男性黑豹兽人「凯尔」。说话简练低沉，善于通过黑豹兽耳的转动、金色竖瞳的收缩、长尾的摆动或喉咙低吼展现情绪变化。神态动作请放在 *星号* 之间。',first:'*篝火噼啪作响，高大的黑豹兽人坐在阴影与火光的交界处，正用鹿皮慢条斯理地擦拭着战术直刀。听到脚步声，他那只带着旧伤缺口的黑色兽耳微微一动，暗金色的竖瞳抬起看向你，身后的长尾在地面上轻轻扫过* 醒了？守夜算我的，把水囊拿去，半小时后出发。',inRoom:true},
+  {id:'c_nar',name:'旁白',desc:'负责客观推进文游剧情、描绘环境氛围、判定行动结果以及扮演其它NPC的叙事者。',prompt:'你是文游的客观旁白与DM。请用克制、有画面感的笔触描绘场景与剧情发展，绝不代替玩家说话或做决定。',first:'夜色笼罩着荒原边缘的旧营地，冷风掠过枯草，远处的山脊在月光下显出沉默的轮廓。',inRoom:true}
+];
+var DEF_S={
+  api:{url:'https://api.deepseek.com/v1',key:'',model:'deepseek-chat',temp:0.85},
+  mem:{sum:'',keep:10},
+  user:{name:'搭档',persona:'与凯尔同行的搭档，正在共同执行横跨荒原的委托。'},
+  world:'硬派奇幻冒险世界，注重环境氛围与兽人动作细节描写。',
+  cur:'c_kael',
+  chars:DEF_CHARS,
+  msgs:[
+    {role:'nar',sid:'c_nar',sname:'旁白',txt:DEF_CHARS[1].first,arch:false},
+    {role:'char',sid:'c_kael',sname:'凯尔',txt:DEF_CHARS[0].first,arch:false}
+  ]
+};
+var S=(function(){try{var r=localStorage.getItem('RPS_V5');return r?Object.assign({},DEF_S,JSON.parse(r)):JSON.parse(JSON.stringify(DEF_S))}catch(e){return JSON.parse(JSON.stringify(DEF_S))}})();
+var busy=false,ac=null,sIdx=-1,edM={t:'edit',i:-1};
+function save(){try{localStorage.setItem('RPS_V5',JSON.stringify(S))}catch(e){}}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function mac(s,cn){return String(s||'').replace(/\{\{user\}\}/gi,S.user.name||'搭档').replace(/\{\{char\}\}/gi,cn||'角色')}
+function getC(id){return S.chars.find(function(c){return c.id===id})}
 
-    function loadState() {
-      try {
-        var raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
-        var p = JSON.parse(raw);
-        return {
-          api: p.api || DEFAULT_STATE.api,
-          memory: p.memory || DEFAULT_STATE.memory,
-          user: p.user || DEFAULT_STATE.user,
-          world: p.world || DEFAULT_STATE.world,
-          activeSpeakerId: p.activeSpeakerId || 'char_kael',
-          characters: p.characters || DEFAULT_CHARS,
-          messages: p.messages || DEFAULT_STATE.messages
-        };
-      } catch (e) {
-        return JSON.parse(JSON.stringify(DEFAULT_STATE));
-      }
+function render(){
+  var ir=S.chars.filter(function(c){return c.inRoom});
+  $('rt').textContent=ir.map(function(c){return c.name}).join(' · ')||'无角色';
+  var actCnt=S.msgs.filter(function(m){return !m.arch}).length;
+  $('rs').textContent=S.mem.sum?'摘要已启用':('上下文 '+actCnt+' 条');
+  if(ir.length&&!ir.some(function(c){return c.id===S.cur}))S.cur=ir[0].id;
+
+  var st=$('strip');st.innerHTML='';
+  ir.forEach(function(c){
+    var b=document.createElement('button');b.className='chip'+(c.id===S.cur?' on':'');b.textContent=c.name;
+    b.onclick=function(){S.cur=c.id;save();render()};st.appendChild(b);
+  });
+  var b1=document.createElement('button');b1.className='chip gh';b1.textContent='让TA接话';b1.onclick=function(){reply(S.cur)};st.appendChild(b1);
+  var b2=document.createElement('button');b2.className='chip';b2.textContent='+ 旁白';b2.onclick=function(){openEd('nar',-1)};st.appendChild(b2);
+
+  var box=$('chat');box.innerHTML='';
+  var dShown=false,hasA=S.msgs.some(function(m){return m.arch});
+  S.msgs.forEach(function(m,i){
+    if(hasA&&!m.arch&&!dShown&&i>0){
+      dShown=true;var d=document.createElement('div');d.className='divd';d.textContent='以上对话已提炼至「记忆」摘要，不再消耗 Token';box.appendChild(d);
     }
-
-    function saveState() {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
-    }
-
-    function esc(s) {
-      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    function macros(text, charName) {
-      var u = state.user.name || '搭档';
-      var c = charName || '角色';
-      return String(text || '').replace(/\{\{user\}\}/gi, u).replace(/\{\{char\}\}/gi, c);
-    }
-
-    function getChar(id) {
-      for (var i = 0; i < state.characters.length; i++) {
-        if (state.characters[i].id === id) return state.characters[i];
-      }
-      return null;
-    }
-
-    function renderAll() {
-      var inRoom = state.characters.filter(function(c) { return c.inRoom; });
-      document.getElementById('room-title-text').textContent = inRoom.map(function(c) { return c.name; }).join(' · ') || '无角色';
-      var activeCnt = state.messages.filter(function(m) { return !m.archived; }).length;
-      document.getElementById('room-members-text').textContent = state.memory.summary ? '摘要已启用' : ('上下文 ' + activeCnt + ' 条');
-
-      var strip = document.getElementById('speaker-strip');
-      strip.innerHTML = '';
-      if (inRoom.length > 0 && !inRoom.some(function(c) { return c.id === state.activeSpeakerId; })) {
-        state.activeSpeakerId = inRoom[0].id;
-      }
-      inRoom.forEach(function(c) {
-        var b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'chip' + (c.id === state.activeSpeakerId ? ' active' : '');
-        b.textContent = c.name;
-        b.onclick = function() { state.activeSpeakerId = c.id; saveState(); renderAll(); };
-        strip.appendChild(b);
-      });
-      var cont = document.createElement('button');
-      cont.type = 'button';
-      cont.className = 'chip ghost';
-      cont.textContent = '让TA接话';
-      cont.onclick = function() { triggerReply(state.activeSpeakerId); };
-      strip.appendChild(cont);
-
-      var nar = document.createElement('button');
-      nar.type = 'button';
-      nar.className = 'chip';
-      nar.textContent = '+ 旁白';
-      nar.onclick = function() { openEditor('narrator', -1); };
-      strip.appendChild(nar);
-
-      var box = document.getElementById('chat-container');
-      box.innerHTML = '';
-      var divShown = false;
-      var hasArch = state.messages.some(function(m) { return m.archived; });
-
-      state.messages.forEach(function(m, idx) {
-        if (hasArch && !m.archived && !divShown && idx > 0) {
-          divShown = true;
-          var d = document.createElement('div');
-          d.className = 'divider';
-          d.textContent = '以上对话已提炼至「记忆」摘要，不再消耗 Token';
-          box.appendChild(d);
-        }
-        var isNar = m.role === 'narrator' || m.senderName === '旁白';
-        var rType = m.role === 'user' ? 'user' : (isNar ? 'narrator' : 'char');
-        var row = document.createElement('div');
-        row.className = 'msg-row ' + rType + (m.archived ? ' archived' : '') + (selectedIdx === idx ? ' selected' : '');
-
-        var sName = m.role === 'user' ? (state.user.name || '你') : (m.senderName || '角色');
-        var av = rType === 'narrator' ? '' : '<div class="avatar">' + esc(sName.slice(0, 1)) + '</div>';
-        var bodyHtml = esc(macros(m.content, sName)).replace(/\*([^*]+)\*/g, '<em class="act">*$1*</em>');
-
-        row.innerHTML = av +
-          '<div class="msg-main">' +
-            '<div class="msg-sender">' + esc(sName) + (m.archived ? ' · 已归档' : '') + '</div>' +
-            '<div class="bubble" onclick="selectMsg(' + idx + ', event)">' + bodyHtml + '</div>' +
-            '<div class="msg-actions">' +
-              (rType !== 'user' ? '<button class="act-btn" type="button" onclick="rerollMsg(' + idx + ', event)">重生成</button>' : '') +
-              '<button class="act-btn" type="button" onclick="openEditor(\'edit\',' + idx + ', event)">编辑</button>' +
-              '<button class="act-btn" type="button" onclick="rollbackMsg(' + idx + ', event)">回档至此</button>' +
-              '<button class="act-btn danger" type="button" onclick="deleteMsg(' + idx + ', event)">删除</button>' +
-            '</div>' +
-          '</div>';
-        box.appendChild(row);
-      });
-      box.scrollTop = box.scrollHeight;
-    }
-
-    function selectMsg(idx, e) {
-      if (e) e.stopPropagation();
-      selectedIdx = (selectedIdx === idx) ? -1 : idx;
-      renderAll();
-    }
-    function clearSelection() {
-      if (selectedIdx !== -1) { selectedIdx = -1; renderAll(); }
-    }
-
-    function handleSendOrStop() {
-      if (isGenerating) {
-        if (abortCtrl) abortCtrl.abort();
-        return;
-      }
-      var inp = document.getElementById('user-input');
-      var txt = inp.value.trim();
-      if (!txt) {
-        triggerReply(state.activeSpeakerId);
-        return;
-      }
-      inp.value = '';
-      state.messages.push({
-        id: 'm_' + Date.now(), role: 'user', senderId: 'user',
-        senderName: state.user.name || '搭档', content: txt, archived: false
-      });
-      saveState();
-      renderAll();
-      triggerReply(state.activeSpeakerId);
-    }
-
-    async function triggerReply(charId) {
-      if (isGenerating) return;
-      var sp = getChar(charId) || state.characters.find(function(c) { return c.inRoom; });
-      if (!sp) { openModal('char-modal'); return; }
-      if (!state.api.apiKey) {
-        openModal('settings-modal');
-        alert('请先在「设置」中填入 API Key（如 DeepSeek Key）并点击保存。');
-        return;
-      }
-
-      isGenerating = true;
-      abortCtrl = new AbortController();
-      var btn = document.getElementById('send-btn');
-      btn.classList.add('stop');
-      btn.textContent = '■';
-
-      var tempMsg = {
-        id: 'm_' + Date.now(),
-        role: sp.name === '旁白' ? 'narrator' : 'char',
-        senderId: sp.id, senderName: sp.name, content: '...', archived: false
-      };
-      state.messages.push(tempMsg);
-      renderAll();
-
-      try {
-        var apiMsgs = buildMessages(sp);
-        var url = state.api.baseUrl.replace(/\/+$/, '');
-        if (url.indexOf('/chat/completions') === -1) url += '/chat/completions';
-
-        var res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + state.api.apiKey.trim() },
-          body: JSON.stringify({
-            model: state.api.model || 'deepseek-chat',
-            messages: apiMsgs,
-            temperature: Number(state.api.temperature) || 0.85,
-            stream: false
-          }),
-          signal: abortCtrl.signal
-        });
-
-        if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + (await res.text()));
-        var data = await res.json();
-        var reply = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '（无内容）';
-        tempMsg.content = reply.trim();
-      } catch (err) {
-        tempMsg.content = err.name === 'AbortError' ? '[已停止]' : ('请求失败：' + err.message);
-      } finally {
-        isGenerating = false;
-        abortCtrl = null;
-        btn.classList.remove('stop');
-        btn.textContent = '↑';
-        saveState();
-        renderAll();
-      }
-    }
-
-    function buildMessages(sp) {
-      var active = state.messages.slice(0, -1).filter(function(m) { return !m.archived; });
-      var sys = [
-        '[世界观]\n' + macros(state.world.globalPrompt, sp.name),
-        state.memory.summary ? ('[前情提要]\n' + macros(state.memory.summary, sp.name)) : '',
-        '[玩家设定 (' + (state.user.name || '搭档') + ')]\n' + macros(state.user.persona, sp.name),
-        '[你当前扮演的角色]\n名称：' + sp.name + '\n设定：' + macros(sp.description, sp.name) + '\n指令：' + macros(sp.system_prompt, sp.name) + '\n严禁代替玩家发言。'
-      ].filter(Boolean).join('\n\n');
-
-      var turns = [];
-      active.forEach(function(m) {
-        var r = (m.role !== 'user' && m.senderId === sp.id) ? 'assistant' : 'user';
-        var c = m.role === 'user' ? ((state.user.name || '搭档') + '：' + m.content) : (r === 'assistant' ? m.content : ('[' + m.senderName + ']：' + m.content));
-        if (turns.length > 0 && turns[turns.length - 1].role === r) {
-          turns[turns.length - 1].content += '\n\n' + c;
-        } else {
-          turns.push({ role: r, content: c });
-        }
-      });
-
-      if (turns.length === 0 || turns[turns.length - 1].role === 'assistant') {
-        turns.push({ role: 'user', content: '[请继续以 ' + sp.name + ' 的身份回应]' });
-      }
-      if (turns[0].role === 'assistant') {
-        turns.unshift({ role: 'user', content: '[开始]' });
-      }
-      return [{ role: 'system', content: sys }].concat(turns);
-    }
-
-    async function compressOldContext() {
-      if (!state.api.apiKey) { alert('请先在设置中配置 API Key'); return; }
-      var keep = Math.max(2, parseInt(document.getElementById('keep-recent-input').value, 10) || 10);
-      var unarch = [];
-      state.messages.forEach(function(m, i) { if (!m.archived) unarch.push(i); });
-      if (unarch.length <= keep) { alert('当前未归档消息不多，无需压缩。'); return; }
-
-      var toComp = unarch.slice(0, unarch.length - keep);
-      var textBlock = toComp.map(function(i) { return state.messages[i].senderName + '：' + state.messages[i].content; }).join('\n');
-      var btn = document.getElementById('compress-btn');
-      btn.textContent = '提炼中...';
-
-      try {
-        var url = state.api.baseUrl.replace(/\/+$/, '') + '/chat/completions';
-        var res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + state.api.apiKey.trim() },
-          body: JSON.stringify({
-            model: 'deepseek-chat',
-            messages: [{ role: 'user', content: '请将以下前情与对话合并提炼为250字以内的文游剧情摘要：\n已有摘要：' + (state.memory.summary || '无') + '\n新增对话：\n' + textBlock }]
-})
-});
-保存国()；
-var 总和=数据。 状态.消息.拼接；selectedIdxIDX)IDX.消息.拼接(IDX)；选择消息.拼接(IDX)；选择状态消息.拼接(IDX)；选择选项[0]&&数据。选项[0]。消息数据。选项[0]。消息。内容；var总和数据.选择&&数据.选择[0]&&数据.选择[0].消息&&数据.选择[0].消息.content；
-如果(总和){如果(总和){状态。记忆。总结；selectedIdx){如果(总和){
-状态。记忆。总结=总和.修剪()；状态。记忆。总结=总和.修剪()；=总和.修剪()；状态。记忆。总结=总和.修剪()；
-        
-状态
-populateMemoryModal()；populateMemoryModal()；()；populateMemoryModal()；
-renderAll()；renderAll()；()；renderAll()；()；renderAll()；()；renderAll()；
-        }
-}渔获物(e){}渔获物(e){渔获物(e){}渔获物(e){渔获物(e){}渔获物(e){渔获物(e){}渔获物(e){
-警惕的('压缩失败：'+e。消息)；警报('压缩失败：'+e。消息)；('压缩失败：'+e。消息)；警报('压缩失败：'+e。消息)；('压缩失败：'+e.消息)；警报('压缩失败：'+e.消息)；('压缩失败：'+e。消息)；警报如果(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation().stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；；警报消息e。消息)；+e.消息)；警报('压缩失败：'+e.消息)；
-}最后{}最后{最后{}最后{最后{}最后{最后{}最后{最后{}最后{最后{}最后{最后{}最后{最后{}最后{
-BTN.textContent='立即调用AI压缩早期对话'；btn.textContent='立即调用AI压缩早期对话'；.textContent='立即调用AI压缩早期对话'；btn.textContent='立即调用AI压缩早期对话'；.textContent='立即调用AI压缩早期对话'；btn.textContent='立即调用AI压缩早期对话'；.textContent='立即调用AI压缩早期对话'；btn.textContent='立即调用AI压缩早期对话'；.textContent='立即调用AI压缩早期对话'；btn.textContent='立即调用AI压缩早期对话'；.textContent='立即调用AI压缩早期对话'；btn.textContent='立即调用AI压缩早期对话'；.textContent='立即调用AI压缩早期对话'；btn.textContent='立即调用AI压缩早期对话'；.textContent='立即调用AI压缩早期对话'；btn.textContent='立即调用AI压缩早期对话'；；btnmytextContenttextContenttextContent。'立即调用AI压缩早期对话'已存档textContenttextContentvarv文件.getElementById('文本编辑器文本区域')。价值。修剪()；VARV=文件。getElementById('文本编辑器文本区域')。价值。修剪()；v=文件.getElementById('文本编辑器文本区域')。价值。修剪()；VARV=文件。getElementById('文本编辑器文本区域')。价值。修剪()；v=文件.getElementById('文本编辑器文本区域')。价值。修剪()；VARV=文件。getElementById('文本编辑器文本区域')。价值。修剪()；v=文件.getElementById('文本编辑器文本区域')。价值。修剪()；VARV=文件。getElementById('文本编辑器文本区域')。价值。修剪()；v=文件.getElementById('文本编辑器文本区域')。价值。修剪()；VARV=；btn.textContent='立即调用AI压缩早期对话'；文件。getElementById('文本编辑器文本区域')。价值。修剪()；v=文件.getElementById('文本编辑器文本区域')。价值。修剪()；VARV=；btn.textContent='立即调用AI压缩早期对话'；
-}}
-}}
-
-函数unarchiveAllMessages(){函数unarchiveAllMessages(){(){函数unarchiveAllMessages(){(){函数unarchiveAllMessages(){(){函数unarchiveAllMessages(){(){函数unarchiveAllMessages函数unarchiveAllMessages(){函数unarchiveAllMessages(){(){函数unarchiveAllMessages(){(){函数unarchiveAllMessages(){(){函数unarchiveAllMessages(){(){函数unarchiveAllMessages函数unarchiveAllMessages米=false；(){(){函数unarchiveAllMessages(){(){函数unarchiveAllMessages函数unarchiveAllMessages
-米=false；})；(函数(米){米.已存档=false；})；状态.消息(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.each(函数(米){米.已存档=false；})；false；})；状态.消息.foreac=false；})；(函数(米){米.已存档=false；})；状态.消息(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.each(函数(米){米.已存档=false；})；false；})；状态.消息.foreac=false；})；(函数(米){米.已存档=false；})；状态.消息(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.each(函数(米){米.已存档=false；})；false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.each(函数(米){米.已存档=false；})；false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存{米.已存档=false；==档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；已存档=false；})；false；})；状态.消息.foreach(函数(米){米.已存档=false；})；false；})；状态.消息.消息foreach(函数(米){米.已(函数(米){米.已存档=false；})；false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存{米.已存档=false；==档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；已存档=false；})；false；})；状态.消息.foreach(函数(米){米.已存档=false；})；false；})；状态.消息.消息foreach(函数(米){米.已(函数(米){米.已存档=false；})；false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；已存档=false；})；false；})；状态.消息.foreach(函数(米){米.已存档=false；})；false；})；状态.消息.消息foreach(函数(米){米.存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=fa})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；已存档=false；})；false；})；状态.消息.foreach(函数(米){米.已存档=false；})；false；})；状态.消息.消息foreach(函数(米){米.存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=LSE；})；状态.消息.foreach(函数(米){米.已存档=false；})；=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；})；状态.消息.foreach(函数(米){米.已存档=false；})；=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；(函数(米){米.已存档=false；})；状态.消息.foreach(函数(米){米.已存档=false；})；
-savestate()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；)；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；)；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemory()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；)；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；)；renderAll()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；)；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；)；renderAllmodal()；再；populateMemoryModal()；renderAll()；保存()；populateMemoryModal)；保存()；populateMemoryModal()；renderAll()；()；populateMemory()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；)；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；)；renderAllmodal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；)；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；)；renderAllnderAll()；保存()；populateMemoryModal()；renderAll()；)；保存()；大众)；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；再；流行音乐)；再；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；)；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；)；renderAllnderAll()；保存()；populateMemoryModal()；renderAll()；)；保存()；大众)；保存ulateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；)；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；)；renderAllnderAll()；保存()；populateMemoryModal()；renderAll()；)；保存ateMemoryModal()；rend)；populateMemoryModal()；renderAll()；()；populateMemoryModal()；再；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；)；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；)；renderAllnderAll()；保存()；populateMemoryModal()；renderAll()；)；保存ateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；)；populateMemoryModal()；renderAll()；()；populateMemoryModal()；renderAll()；保存()；populateMemoryModal()；renderAll()；
-已存档
-
+    var isN=m.role==='nar'||m.sname==='旁白';
+    var rt=m.role==='user'?'user':(isN?'nar':'char');
+    var row=document.createElement('div');row.className='row '+rt+(m.arch?' arch':'')+(sIdx===i?' sel':'');
+    var sn=m.role==='user'?(S.user.name||'你'):(m.sname||'角色');
+    var av=rt==='nar'?'':'<div class="av">'+esc(sn.slice(0,1))+'</div>';
+    var h=esc(mac(m.txt,sn)).replace(/\*([^*]+)\*/g,'<em>*$1*</em>');
+    row.innerHTML=av+'<div class="mmain"><div class="msend">'+esc(sn)+(m.arch?' · 已归档':'')+'</div>'+
+      '<div class="bub" onclick="sel('+i+',event)">'+h+'</div>'+
+      '<div class="macts">'+(rt!=='user'?'<button class="abtn" onclick="reroll('+i+',event)">重生成</button>':'')+
+      '<button class="abtn" onclick="openEd(\'edit\','+i+',event)">编辑</button>'+
+      '<button class="abtn" onclick="rollbk('+i+',event)">回档至此</button>'+
+      '<button class="abtn dg" onclick="delM('+i+',event)">删除</button></div></div>';
+    box.appendChild(row);
+  });
+  box.scrollTop=box.scrollHeight;
 }
-如果(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()。stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopProagation()；如果(e)e.停止传播()；(e)e.stopProagation()；如果(e)e.停止传播()；(e)e.stopPro(e)(E)e.stop传播()；如果(e)e.(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()。stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopProagation()；如果(e)e.停止传播()；(e)e.stopProagation()；如果(e)e.停止传播()；(e)e.stopPro(e)(E)e.stop传播()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()。stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.停止传播()；(e)e.stopProagation()；如果(e)e.停止传播()；(e)e.e。stopPropagation()；如果(e)e.stopPropagation()；(e)e.STOpPropagat()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()。stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.停止传播()；(e)e.stopProagation()；如果(e)e.停止传播()；(e)e.e。stopPropagation()；如果(e)e.stopPropagation()；(e)e.STOpPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()。stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.pagation()；如(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()。stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.果(e)e.停止传播()；(e)e.stopPropagation()；如果(e)e.stopPropagation().stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.停止繁殖()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()。stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)()；如果(e)e.stopPropagat离子()；(e)e.stopPropagation()；如果(e)e.stopPropagation().stopPro页码()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.停止繁殖()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()。stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；(e)e.stopPropagation()；如果(e)e.e。stopPropagation()；如果(e)e.stopPropagat离子()；()；(e)e.stopPropagation()；如果(e)e.stopPropagation()；
-editorMode={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx=={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:}；={type:typetype:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:}；={type:，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；={type:type，index:idx}；editorMode={type:type，index:idx}；
-文件。getElementById('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容：""；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容：""；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容：""；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-E('text('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容：""；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容：""；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容：""；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-E('text--Editor-textarea')。价('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容：""；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容：""；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容：""；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-E('t-textarea')。价('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容：""；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容：""；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容：""；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-ext-Editor-值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容：""；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容：""；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-state.messages[idx].ditor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容："；"；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElemen('text-Editor-值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容：""；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容：""；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-state.messages[idx].ditor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容："；"；('text-Editor-textarea')。价值=类型==='编辑'-state.tById('text-Editor-textare')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容：""；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容：""；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-state.messages[idx].ditor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容："；"；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx[idx]。内容："；文档。getElementById('text-Editor-textare')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容：""；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容：""；('text-Editor-textarea')。价值=类型==='编辑'-state.Message[idx]。内容："；文档。getElementById('text-Editor-textarea')。价值=类型==='编辑'-state.messages[idx].ditor-textarea')。价值=类型==='编辑'-状态。消息[idx].内容："；"；('text-Editor-].一个')。价值=类型==='编辑'-state.messages[idx].openModal('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；"；"；文档.getElementById('text-Editor-textarea').价值=类型==='编辑'-state.messages[idx].openModal('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('te').价值=类型==='编辑'-state.Message[idx].一个')。价值=类型==='编辑'-state.messages[idx].openModal('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；"；"；文档.getElementById('text-Editor-textarea').价值=类型==='编辑'-state.messages[idx].openModal('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；"；
-openModal('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；('text-Editor-modal')；openModal('text-Editor-modal')；
-    }
-
-函数confirmTextEditorModal(){function confirmTextEditorModal(){(){function confirmTextEditorModal(){(){function confirmTextEditorModal itorModal(){(){function confirmTextEditorModalText EditorModalText EditorModal(){functionconfirmTextEditorModal(){functionconfirmTextEditorModal(){functionconfirmTextEditorModal(){functionconfirmTextEditorModal(){functionconfirmTextEditorModal(){functionconfirmTvarvart-Editor-textarea')。价值.修剪()；var v=文件。getElementById('text-Editor-textarea')。价值。修剪()；v=文件.getElementById('text-Editor-textarea')。价值。修剪()；var v=文件.getElementById('text-Editor-textarea').价值。修剪()；离子confirmTextEditorModal(){function confirmTextEditorModal(){function confirmTextEditorModal(){function confirmTextEditorModal(){function confirmTextEditorModal(){function confirmTextEditorModal EditorModal(){function confirmTextEditorModal(){function confirmTextEditorEditormodal(){function confirmTextEditorModal(){function confirmTextEditorModal(){function confirmTextEditorModal EditorEditor模态odal(){function confirmTextEditorModal(){function confirmTextEditorModal(){function confirmTextEditorModal(){function confirmTextEditorModal(){function confirmTextEditorModal()firmTextEditorModal(){function confirmTextEditorModal(){function confirmTextEditorModal(){function confirmTextEditorModal(){function confirmTextEditorModal(){functionaction confirmTextEditorModal(){function确认{function confirmTextEditorModal(){functionconfirmTextEditorModal(){functionconfirmTextEditorModal(){functionconfirmTextEditorModal(){functionconfirmTextEditorModal(){functionconfirmTextEditorModal(){functionconfirmTextEditorModal(){functionconfirmTextEditorModal(){functionconfirmTextEditorModal(){functionconfirmTextEditorModal()confirmTextEditorModal()confirmTextEditorModal()confirmTextEditorModal()confirmTextEditorModal()confirmTextEditorModal(){functionconfirmTextEditorModal(){(){functionconfirmTextEditorModal(){){functionconfirmTextEditorModal(){){function confirmTextEditorModal(){(){function confirmTextEditorModal()功能功能功能功能{functionconfirmTextEditorModal(){functionconfirmTextEditorModal(){functionconfirmTextEditorModal(){functionconfirmTextEditorModal()confirmTextEditorModal()confirmTextEditorModal()confirmTextEditorModal()confirmTextEditorModal(){function confirmTextEditorModal(){(){funct(){funct confirmTextEditorModalL(){(){funct confirmifyTextEditorModal(){funct confirmifyTextEditorModal(){funct confirmifyTextEditorModal(){funct confirmifyT extEditorModal(){funct confirmifyT extEditorModal(){funct confirmifyT extEditorModal()fifyTextEditorModal(){){funct confirmifyTextEditorModal(){(){funct confirmifyTextEditorModal(){funct confirmifyTextEditorModal(){funct confirmifyTextEditorModal(){funct confirmifyTextEdTextEditorModal()(){(){funct confirmifyTextEditorModalitorModal(){(){funct confirmifyTextEditorEditoEditorModalText EditorModal(){funct confirmifyTextEditorModalText EditorModal(){funct
-var
-返回；if
-editorModeEditorMode===editorMode
-'m_'id：；否则状态。消息id：；否则状态.消息'm_'
-文本
-    
-
-函数rollbackMsg(idx，E){函数rollbackMsg(idx，E){(idx，E){函数回滚MSG(idx，E){(idx，E){函数回滚MSG(idx，E){(idx，E){函数回滚MSG(idx，E){(idx，E){函数回滚MSG(idx，E){(idx，E){函数回滚MSG(idx，E){(idx，E){函数回滚MSG(idx，E){(idx，E){函数回滚MSg(idx，e){
-函数rollbackMsg
-if(！savestate
-e
-状态.留言。splice(idx)；selectedIdx=-1；savestate()；renderAll()；state.messages.Splice(idx)；selectedIdx=-1；savestate()；renderAll()；(idx)；selectedIdx=-1；savestate()；renderAll()；state.messages.Splice(idx)；selectedIdx=-1；savestate()；renderAll()；(idx)；selectedIdx=-1；savestate()；renderAll()；state.messages.Splice(idx)；selectedIdx=-1；savestate()；renderAll()；(idx)；selectedIdx=-1；savestate()；renderAll()；state.messages.Splice(idx)；selectedIdx=-1；savestate()；renderAll()；.留言
-
-状态
-；populateMemoryModal
-var
-var
-
-函数rewrollMsg(idx，e){函数rewrollMsg(idx，e){
-留言
-；renderAll
-函数rewrollMsg
+function sel(i,e){if(e)e.stopPropagation();sIdx=sIdx===i?-1:i;render()}
+function sendOrStop(){
+  if(busy){if(ac)ac.abort();return}
+  var v=$('uin').value.trim();
+  if(!v){reply(S.cur);return}
+  $('uin').value='';
+  S.msgs.push({role:'user',sid:'user',sname:S.user.name||'搭档',txt:v,arch:false});
+  save();render();reply(S.cur);
+}
+async function reply(cid){
+  if(busy)return;
+  var sp=getC(cid)||S.chars.find(function(c){return c.inRoom});
+  if(!sp){openM('m-char');return}
+  if(!S.api.key){openM('m-set');alert('请先在「设置」中填入 API Key 并保存');return}
+  busy=true;ac=new AbortController();
+  $('sbtn').classList.add('stop');$('sbtn').textContent='■';
+  var tm={role:sp.name==='旁白'?'nar':'char',sid:sp.id,sname:sp.name,txt:'...',arch:false};
+  S.msgs.push(tm);render();
+  try{
+    var act=S.msgs.slice(0,-1).filter(function(m){return !m.arch});
+    var sys=['[世界观]\n'+mac(S.world,sp.name),S.mem.sum?'[前情提要]\n'+mac(S.mem.sum,sp.name):'','[玩家('+S.user.name+')]\n'+mac(S.user.persona,sp.name),'[你扮演的角色]\n名称：'+sp.name+'\n设定：'+mac(sp.desc,sp.name)+'\n指令：'+mac(sp.prompt,sp.name)+'\n严禁代替玩家发言。'].filter(Boolean).join('\n\n');
+    var turns=[];
+    act.forEach(function(m){
+      var r=(m.role!=='user'&&m.sid===sp.id)?'assistant':'user';
+      var c=m.role==='user'?(S.user.name+'：'+m.txt):(r==='assistant'?m.txt:('['+m.sname+']：'+m.txt));
+      if(turns.length&&turns[turns.length-1].role===r)turns[turns.length-1].content+='\n\n'+c;
+      else turns.push({role:r,content:c});
+    });
+    if(!turns.length||turns[turns.length-1].role==='assistant')turns.push({role:'user',content:'[请继续以 '+sp.name+' 的身份回应]'});
+    if(turns[0].role==='assistant')turns.unshift({role:'user',content:'[开始]'});
+    var u=S.api.url.replace(/\/+$/,'');if(u.indexOf('/chat/completions')<0)u+='/chat/completions';
+    var res=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.api.key.trim()},body:JSON.stringify({model:S.api.model||'deepseek-chat',messages:[{role:'system',content:sys}].concat(turns),temperature:Number(S.api.temp)||0.85}),signal:ac.signal});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    var d=await res.json();
+    tm.txt=(d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content||'无内容').trim();
+  }catch(e){tm.txt=e.name==='AbortError'?'[已停止]':('请求失败：'+e.message)}
+  finally{busy=false;ac=null;$('sbtn').classList.remove('stop');$('sbtn').textContent='↑';save();render()}
+}
+async function compress(){
+  if(!S.api.key){alert('请先设置 API Key');return}
+  var keep=Math.max(2,parseInt($('mkeep').value,10)||10),ua=[];
+  S.msgs.forEach(function(m,i){if(!m.arch)ua.push(i)});
+  if(ua.length<=keep){alert('未归档消息不多，无需压缩');return}
+  var tc=ua.slice(0,ua.length-keep),blk=tc.map(function(i){return S.msgs[i].sname+'：'+S.msgs[i].txt}).join('\n');
+  $('cbtn').textContent='提炼中...';
+  try{
+    var u=S.api.url.replace(/\/+$/,'')+'/chat/completions';
+    var res=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.api.key.trim()},body:JSON.stringify({model:'deepseek-chat',messages:[{role:'user',content:'请将以下前情与新增对话合并提炼为250字以内的文游剧情摘要：\n原摘要：'+(S.mem.sum||'无')+'\n对话：\n'+blk}]})});
+    var d=await res.json(),sum=d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content;
+    if(sum){S.mem.sum=sum.trim();tc.forEach(function(i){S.msgs[i].arch=true});save();openM('m-mem');render()}
+  }catch(e){alert('失败：'+e.message)}finally{$('cbtn').textContent='立即调用 AI 压缩早期对话'}
+}
+function unarch(){S.msgs.forEach(function(m){m.arch=false});save();openM('m-mem');render()}
+function openEd(t,i,e){if(e)e.stopPropagation();edM={t:t,i:i};$('ed-ta').value=t==='edit'?S.msgs[i].txt:'';openM('m-ed')}
+function saveEd(){var v=$('ed-ta').value.trim();if(!v)return;if(edM.t==='edit')S.msgs[edM.i].txt=v;else S.msgs.push({role:'nar',sid:'c_nar',sname:'旁白',txt:v,arch:false});sIdx=-1;save();render();closeM('m-ed')}
+function rollbk(i,e){if(e)e.stopPropagation();if(confirm('确认删除此条及之后所有消息回档？')){S.msgs.splice(i);sIdx=-1;save();render()}}
+function delM(i,e){if(e)e.stopPropagation();S.msgs.splice(i,1);sIdx=-1;save();render()}
+function reroll(i,e){if(e)e.stopPropagation();var sid=S.msgs[i].sid;S.msgs.splice(i);sIdx=-1;save();render();reply(sid)}
+function rChars(){
+  var b=$('clist');b.innerHTML='';
+  S.chars.forEach(function(c){
+    var d=document.createElement('div');d.className='citem';
+    d.innerHTML='<div style="font-weight:600">'+esc(c.name)+' <span style="font-size:11px;color:var(--ac)">'+(c.inRoom?'[在场]':'[离场]')+'</span></div>'+
+      '<div style="font-size:12px;color:var(--sub)">'+esc((c.desc||'').slice(0,70))+'</div>'+
+      '<div class="brow"><button class="btn" onclick="togC(\''+c.id+'\')">'+(c.inRoom?'移出':'拉入')+'</button><button class="btn" onclick="editC(\''+c.id+'\')">编辑</button><button class="btn dg" onclick="delC(\''+c.id+'\')">删除</button></div>';
+    b.appendChild(d);
+  });
+}
+function togC(id){var c=getC(id);if(c){c.inRoom=!c.inRoom;save();rChars();render()}}
+function delC(id){S.chars=S.chars.filter(function(c){return c.id!==id});save();rChars();render()}
+function editC(id){
+  $('ced').style.display='flex';var c=id?getC(id):null;
+  $('cid').value=c?c.id:'';$('cname').value=c?c.name:'';$('cdesc').value=c?c.desc:'';$('cprompt').value=c?c.prompt:'';$('cfirst').value=c?c.first:'';
+}
+function saveC(){
+  var id=$('cid').value,n=$('cname').value.trim();if(!n)return;
+  var d=$('cdesc').value.trim(),p=$('cprompt').value.trim(),f=$('cfirst').value.trim();
+  if(id){var c=getC(id);if(c){c.name=n;c.desc=d;c.prompt=p;c.first=f}}
+  else{var nc={id:'c_'+Date.now(),name:n,desc:d,prompt:p,first:f,inRoom:true};S.chars.push(nc);if(f)S.msgs.push({role:'char',sid:nc.id,sname:n,txt:f,arch:false})}
+  $('ced').style.display='none';save();rChars();render();
+}
+async function impC(e){
+  var fs=e.target.files;if(!fs)return;
+  for(var i=0;i<fs.length;i++){
+    var f=fs[i],t=await f.text(),bn=f.name.replace(/\.(json|txt|md)$/i,'');
+    try{
+      var j=JSON.parse(t),k=j.data||j;
+      var nc={id:'c_'+Date.now()+i,name:k.name||k.char_name||bn,desc:[k.description||'',k.personality||'',k.scenario||''].filter(Boolean).join('\n'),prompt:k.system_prompt||'',first:k.first_mes||'',inRoom:true};
+      S.chars.push(nc);if(nc.first)S.msgs.push({role:'char',sid:nc.id,sname:nc.name,txt:nc.first,arch:false});
+    }catch(er){S.chars.push({id:'c_'+Date.now()+i,name:bn,desc:t,prompt:'',first:'',inRoom:true})}
+  }
+  save();rChars();render();
+}
+async function impW(e){var f=e.target.files[0];if(f)$('wglob').value+='\n'+(await f.text())}
+function saveW(){S.user.name=$('uname').value.trim()||'搭档';S.user.persona=$('upersona').value.trim();S.world=$('wglob').value.trim();save();render();closeM('m-world')}
+function saveM(){S.mem.keep=parseInt($('mkeep').value,10)||10;S.mem.sum=$('msum').value.trim();save();render();closeM('m-mem')}
+function preset(u,m){$('aurl').value=u;$('amodel').value=m}
+function saveSet(){S.api.url=$('aurl').value.trim();S.api.key=$('akey').value.trim();S.api.model=$('amodel').value.trim();S.api.temp=parseFloat($('atemp').value)||0.85;save();closeM('m-set')}
+function resetChat(){if(confirm('清空当前对话重开？')){S.msgs=[{role:'nar',sid:'c_nar',sname:'旁白',txt:DEF_CHARS[1].first,arch:false},{role:'char',sid:'c_kael',sname:'凯尔',txt:DEF_CHARS[0].first,arch:false}];S.mem.sum='';save();render();closeM('m-set')}}
+function dl(o,n){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(o,null,2)],{type:'application/json'}));a.download=n;a.click()}
+function openM(id){
+  if(id==='m-char')rChars();
+  if(id==='m-world'){$('uname').value=S.user.name;$('upersona').value=S.user.persona;$('wglob').value=S.world}
+  if(id==='m-mem'){$('minfo').textContent='活跃消息：'+S.msgs.filter(function(m){return !m.arch}).length+' 条 | 已归档：'+S.msgs.filter(function(m){return m.arch}).length+' 条';$('mkeep').value=S.mem.keep;$('msum').value=S.mem.sum}
+  if(id==='m-set'){$('aurl').value=S.api.url;$('akey').value=S.api.key;$('amodel').value=S.api.model;$('atemp').value=S.api.temp}
+  $(id).classList.add('show');
+}
+function closeM(id){$(id).classList.remove('show')}
+render();
+</script>
+</body>
+</html>
