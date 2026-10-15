@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
 <title>RP Studio</title>
 <style>
-:root{--bg:#131314;--sf:#1e1f20;--el:#282a2c;--gl:rgba(30,31,32,0.82);--bd:rgba(255,255,255,0.1);--bds:rgba(255,255,255,0.18);--tx:#e3e3e3;--sub:#9aa0a6;--ac:#a8c7fa;--acb:rgba(168,199,250,0.15);--dg:#f28b82}
+:root{--bg:#131314;--sf:#1e1f20;--el:#282a2c;--gl:rgba(30,31,32,0.85);--bd:rgba(255,255,255,0.1);--bds:rgba(255,255,255,0.18);--tx:#e3e3e3;--sub:#9aa0a6;--ac:#a8c7fa;--acb:rgba(168,199,250,0.15);--dg:#f28b82}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;height:100dvh;overflow:hidden;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;font-size:15px;line-height:1.6}
 #app{display:flex;flex-direction:column;width:100%;height:100%;height:100dvh;max-width:800px;margin:0 auto}
@@ -64,11 +64,22 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;background:var(--
 .btn.dg{color:var(--dg);border-color:rgba(242,139,130,0.3)}
 .citem{background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:6px}
 </style>
+<script>
+// 提前定义基础函数，防止 DOM 未加载时点击报 undefined
+function openM(id){
+  if(id==='m-char')rChars();
+  if(id==='m-world'){$('uname').value=S.user.name;$('upersona').value=S.user.persona;$('wglob').value=S.world}
+  if(id==='m-mem'){$('minfo').textContent='活跃消息：'+S.msgs.filter(function(m){return !m.arch}).length+' 条 | 已归档：'+S.msgs.filter(function(m){return m.arch}).length+' 条';$('mkeep').value=S.mem.keep;$('msum').value=S.mem.sum}
+  if(id==='m-set'){$('aurl').value=S.api.url;$('akey').value=S.api.key;$('amodel').value=S.api.model;$('atemp').value=S.api.temp}
+  var el=document.getElementById(id);if(el)el.classList.add('show');
+}
+function closeM(id){var el=document.getElementById(id);if(el)el.classList.remove('show');}
+</script>
 </head>
 <body>
 <div id="app">
   <header class="top glass">
-    <div class="top-l"><span class="dot"></span><span class="r-title" id="rt">加载中</span><span class="r-sub" id="rs"></span></div>
+    <div class="top-l"><span class="dot"></span><span class="r-title" id="rt">凯尔</span><span class="r-sub" id="rs"></span></div>
     <nav class="navs">
       <button class="nbtn" type="button" onclick="openM('m-char')">角色</button>
       <button class="nbtn" type="button" onclick="openM('m-world')">世界</button>
@@ -325,14 +336,7 @@ function preset(u,m){$('aurl').value=u;$('amodel').value=m}
 function saveSet(){S.api.url=$('aurl').value.trim();S.api.key=$('akey').value.trim();S.api.model=$('amodel').value.trim();S.api.temp=parseFloat($('atemp').value)||0.85;save();closeM('m-set')}
 function resetChat(){if(confirm('清空当前对话重开？')){S.msgs=[{role:'nar',sid:'c_nar',sname:'旁白',txt:DEF_CHARS[1].first,arch:false},{role:'char',sid:'c_kael',sname:'凯尔',txt:DEF_CHARS[0].first,arch:false}];S.mem.sum='';save();render();closeM('m-set')}}
 function dl(o,n){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(o,null,2)],{type:'application/json'}));a.download=n;a.click()}
-function openM(id){
-  if(id==='m-char')rChars();
-  if(id==='m-world'){$('uname').value=S.user.name;$('upersona').value=S.user.persona;$('wglob').value=S.world}
-  if(id==='m-mem'){$('minfo').textContent='活跃消息：'+S.msgs.filter(function(m){return !m.arch}).length+' 条 | 已归档：'+S.msgs.filter(function(m){return m.arch}).length+' 条';$('mkeep').value=S.mem.keep;$('msum').value=S.mem.sum}
-  if(id==='m-set'){$('aurl').value=S.api.url;$('akey').value=S.api.key;$('amodel').value=S.api.model;$('atemp').value=S.api.temp}
-  $(id).classList.add('show');
-}
-function closeM(id){$(id).classList.remove('show')}
+
 render();
 </script>
 </body>
