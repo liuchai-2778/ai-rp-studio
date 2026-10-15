@@ -8,11 +8,11 @@
 :root{--bg:#131314;--sf:#1e1f20;--el:#282a2c;--gl:rgba(30,31,32,0.85);--bd:rgba(255,255,255,0.1);--bds:rgba(255,255,255,0.18);--tx:#e3e3e3;--sub:#9aa0a6;--ac:#a8c7fa;--acb:rgba(168,199,250,0.15);--dg:#f28b82}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;height:100dvh;overflow:hidden;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;font-size:15px;line-height:1.6}
-#app{display:flex;flex-direction:column;width:100%;height:100%;height:100dvh;max-width:800px;margin:0 auto}
+#app{display:flex;flex-direction:column;width:100%;height:100%;height:100dvh;max-width:820px;margin:0 auto}
 .glass{background:var(--gl);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--bd)}
 .top{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;margin:8px 10px 0;border-radius:999px;flex-shrink:0}
 .top-l{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--ac);flex-shrink:0}
+.menu-btn{background:none;border:none;color:var(--tx);font-size:16px;cursor:pointer;padding:2px 6px}
 .r-title{font-size:14px;font-weight:600;white-space:nowrap}
 .r-sub{font-size:11.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .navs{display:flex;gap:2px;flex-shrink:0}
@@ -29,15 +29,14 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;background:var(--
 .row.user .mmain{align-items:flex-end;max-width:82%}
 .row.nar .mmain{max-width:96%;width:100%}
 .msend{font-size:12px;color:var(--sub);padding:0 4px}
-.bub{padding:10px 14px;border-radius:18px;font-size:15px;line-height:1.65;word-break:break-word;white-space:pre-wrap;cursor:pointer;background:var(--sf);border:1px solid var(--bd)}
+.bub{padding:10px 14px;border-radius:18px;font-size:15px;line-height:1.65;word-break:break-word;white-space:pre-wrap;background:var(--sf);border:1px solid var(--bd)}
 .row.char .bub{border-top-left-radius:5px}
 .row.user .bub{background:#2b2d30;border-color:var(--bds);border-top-right-radius:5px}
 .row.nar .bub{background:rgba(38,40,44,0.55);border-radius:12px;color:#c4c7c5;font-size:14px}
 .bub em{color:var(--sub);font-style:italic}
-.macts{display:none;gap:12px;padding:2px 6px 0}
-.row.sel .macts{display:flex}
-.row.sel .bub{border-color:var(--ac)}
+.macts{display:flex;gap:10px;padding:4px 4px 0}
 .abtn{background:none;border:none;color:var(--sub);font-size:12px;cursor:pointer}
+.abtn:hover{color:var(--tx)}
 .abtn.dg{color:var(--dg)}
 .bot{padding:6px 10px 10px;display:flex;flex-direction:column;gap:8px;flex-shrink:0}
 .strip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
@@ -51,6 +50,8 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;background:var(--
 .sbtn.stop{background:var(--dg)}
 .mask{position:fixed;inset:0;z-index:99;background:rgba(0,0,0,0.65);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:12px}
 .mask.show{display:flex}
+.drawer{position:fixed;inset:0 30% 0 0;z-index:98;background:#18191b;border-right:1px solid var(--bds);transform:translateX(-100%);transition:transform 0.2s ease;display:flex;flex-direction:column;padding:14px;gap:10px}
+.drawer.show{transform:translateX(0)}
 .mcard{width:100%;max-width:520px;max-height:85dvh;background:#18191b;border:1px solid var(--bds);border-radius:20px;display:flex;flex-direction:column;overflow:hidden}
 .mhead{padding:13px 16px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;font-weight:600}
 .mbody{padding:14px 16px 18px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
@@ -63,23 +64,17 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;background:var(--
 .btn.pri{background:var(--ac);color:#0b121e;border-color:var(--ac);font-weight:600}
 .btn.dg{color:var(--dg);border-color:rgba(242,139,130,0.3)}
 .citem{background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:6px}
+.sitem{padding:10px 12px;border-radius:10px;background:var(--sf);border:1px solid var(--bd);cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.sitem.act{border-color:var(--ac);background:var(--acb)}
 </style>
-<script>
-// 提前定义基础函数，防止 DOM 未加载时点击报 undefined
-function openM(id){
-  if(id==='m-char')rChars();
-  if(id==='m-world'){$('uname').value=S.user.name;$('upersona').value=S.user.persona;$('wglob').value=S.world}
-  if(id==='m-mem'){$('minfo').textContent='活跃消息：'+S.msgs.filter(function(m){return !m.arch}).length+' 条 | 已归档：'+S.msgs.filter(function(m){return m.arch}).length+' 条';$('mkeep').value=S.mem.keep;$('msum').value=S.mem.sum}
-  if(id==='m-set'){$('aurl').value=S.api.url;$('akey').value=S.api.key;$('amodel').value=S.api.model;$('atemp').value=S.api.temp}
-  var el=document.getElementById(id);if(el)el.classList.add('show');
-}
-function closeM(id){var el=document.getElementById(id);if(el)el.classList.remove('show');}
-</script>
 </head>
 <body>
 <div id="app">
   <header class="top glass">
-    <div class="top-l"><span class="dot"></span><span class="r-title" id="rt">凯尔</span><span class="r-sub" id="rs"></span></div>
+    <div class="top-l">
+      <button class="menu-btn" type="button" onclick="toggleDrawer(true)">≡</button>
+      <div><div class="r-title" id="rt">加载中</div><div class="r-sub" id="rs"></div></div>
+    </div>
     <nav class="navs">
       <button class="nbtn" type="button" onclick="openM('m-char')">角色</button>
       <button class="nbtn" type="button" onclick="openM('m-world')">世界</button>
@@ -87,7 +82,7 @@ function closeM(id){var el=document.getElementById(id);if(el)el.classList.remove
       <button class="nbtn" type="button" onclick="openM('m-set')">设置</button>
     </nav>
   </header>
-  <main id="chat" onclick="sel(-1)"></main>
+  <main id="chat"></main>
   <footer class="bot">
     <div class="strip" id="strip"></div>
     <div class="ibox glass">
@@ -97,13 +92,37 @@ function closeM(id){var el=document.getElementById(id);if(el)el.classList.remove
   </footer>
 </div>
 
+<!-- 左侧会话列表抽屉 -->
+<div class="drawer" id="drawer">
+  <div style="font-weight:600;display:flex;justify-content:space-between;align-items:center"><span>会话存档列表</span><button class="abtn" onclick="toggleDrawer(false)">✕</button></div>
+  <button class="btn pri" type="button" onclick="newChatModal()">＋ 新建对话 (1v1 或 群聊)</button>
+  <div id="slist" style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1"></div>
+</div>
+<div class="mask" id="d-mask" onclick="toggleDrawer(false)" style="z-index:97"></div>
+
+<!-- 新建对话弹窗 -->
+<div class="mask" id="m-newchat"><div class="mcard">
+  <div class="mhead"><span>创建新对话</span><button class="abtn" onclick="closeM('m-newchat')">取消</button></div>
+  <div class="mbody">
+    <div class="fld"><label>对话标题 / 存档名</label><input class="inp" id="nc-title" placeholder="例如：与凯尔的荒原夜话"/></div>
+    <div class="fld"><label>对话模式</label>
+      <select class="inp" id="nc-mode">
+        <option value="1v1">1v1 纯享私聊（只与指定角色单聊，干净纯粹）</option>
+        <option value="group">群聊 / 文游剧场（支持多人点名与旁白互动）</option>
+      </select>
+    </div>
+    <div class="fld"><label>选择主要交流角色</label><select class="inp" id="nc-char"></select></div>
+    <button class="btn pri" type="button" onclick="createChatCommit()">立即开启新旅程</button>
+  </div>
+</div></div>
+
+<!-- 其它通用弹窗 -->
 <div class="mask" id="m-char"><div class="mcard">
-  <div class="mhead"><span>角色管理与编队</span><button class="abtn" onclick="closeM('m-char')">关闭</button></div>
+  <div class="mhead"><span>角色管理</span><button class="abtn" onclick="closeM('m-char')">关闭</button></div>
   <div class="mbody">
     <div class="brow">
       <button class="btn pri" onclick="editC(null)">新建角色</button>
       <button class="btn" onclick="$('cf').click()">导入 JSON/TXT</button>
-      <button class="btn" onclick="dl(S.chars,'chars.json')">导出全部</button>
       <input type="file" id="cf" accept=".json,.txt,.md" multiple style="display:none" onchange="impC(event)"/>
     </div>
     <div id="ced" style="display:none;flex-direction:column;gap:8px;padding:10px;background:var(--bg);border-radius:12px;border:1px solid var(--bds)">
@@ -119,29 +138,27 @@ function closeM(id){var el=document.getElementById(id);if(el)el.classList.remove
 </div></div>
 
 <div class="mask" id="m-world"><div class="mcard">
-  <div class="mhead"><span>世界观与玩家设定</span><button class="abtn" onclick="closeM('m-world')">关闭</button></div>
+  <div class="mhead"><span>世界观与玩家设定 (全局共享)</span><button class="abtn" onclick="closeM('m-world')">关闭</button></div>
   <div class="mbody">
-    <div class="brow">
-      <button class="btn" onclick="$('wf').click()">导入世界观 (.json/.txt)</button>
-      <input type="file" id="wf" accept=".json,.txt,.md" style="display:none" onchange="impW(event)"/>
-    </div>
+    <div class="brow"><button class="btn" onclick="$('wf').click()">导入世界观 (.json/.txt)</button><input type="file" id="wf" accept=".json,.txt,.md" style="display:none" onchange="impW(event)"/></div>
     <div class="fld"><label>你的称呼 ({{user}})</label><input class="inp" id="uname"/></div>
     <div class="fld"><label>你的设定 (User Persona)</label><textarea class="ta" id="upersona"></textarea></div>
     <div class="fld"><label>全局世界观与文游规则</label><textarea class="ta" id="wglob"></textarea></div>
+    <div class="fld"><label>关键词动态词条 (JSON 数组)</label><textarea class="ta" id="wentries" style="font-family:monospace;font-size:12px"></textarea></div>
     <button class="btn pri" onclick="saveW()">保存设定</button>
   </div>
 </div></div>
 
 <div class="mask" id="m-mem"><div class="mcard">
-  <div class="mhead"><span>上下文压缩 (防 Token 爆炸)</span><button class="abtn" onclick="closeM('m-mem')">关闭</button></div>
+  <div class="mhead"><span>当前会话记忆摘要</span><button class="abtn" onclick="closeM('m-mem')">关闭</button></div>
   <div class="mbody">
     <div style="font-size:12px;color:var(--sub)" id="minfo"></div>
     <div class="brow">
       <button class="btn pri" id="cbtn" onclick="compress()">立即调用 AI 压缩早期对话</button>
       <button class="btn" onclick="unarch()">恢复全部归档</button>
     </div>
-    <div class="fld"><label>保留最近条数（更早的对话将提炼为摘要，不再发给API）</label><input class="inp" type="number" id="mkeep"/></div>
-    <div class="fld"><label>常驻前情提要 / 剧情摘要</label><textarea class="ta" id="msum" style="min-height:120px"></textarea></div>
+    <div class="fld"><label>保留最近条数</label><input class="inp" type="number" id="mkeep"/></div>
+    <div class="fld"><label>当前存档前情提要 / 剧情摘要</label><textarea class="ta" id="msum" style="min-height:120px"></textarea></div>
     <button class="btn pri" onclick="saveM()">保存记忆设置</button>
   </div>
 </div></div>
@@ -158,16 +175,13 @@ function closeM(id){var el=document.getElementById(id);if(el)el.classList.remove
     <div class="fld"><label>API Key</label><input class="inp" type="password" id="akey" placeholder="sk-..."/></div>
     <div class="fld"><label>Model</label><input class="inp" id="amodel"/></div>
     <div class="fld"><label>Temperature</label><input class="inp" type="number" step="0.05" id="atemp"/></div>
-    <div class="brow">
-      <button class="btn" onclick="dl(S,'rp_save.json')">导出存档</button>
-      <button class="btn dg" onclick="resetChat()">清空重开</button>
-    </div>
+    <div class="brow"><button class="btn" onclick="dl(S,'rp_studio_all.json')">导出全部存档</button><button class="btn dg" onclick="resetAll()">重置所有数据</button></div>
     <button class="btn pri" onclick="saveSet()">保存设置</button>
   </div>
 </div></div>
 
 <div class="mask" id="m-ed"><div class="mcard">
-  <div class="mhead"><span id="ed-t">编辑</span><button class="abtn" onclick="closeM('m-ed')">取消</button></div>
+  <div class="mhead"><span id="ed-t">编辑消息</span><button class="abtn" onclick="closeM('m-ed')">取消</button></div>
   <div class="mbody">
     <textarea class="ta" id="ed-ta" style="min-height:140px"></textarea>
     <button class="btn pri" onclick="saveEd()">确认</button>
@@ -182,81 +196,140 @@ var DEF_CHARS=[
 ];
 var DEF_S={
   api:{url:'https://api.deepseek.com/v1',key:'',model:'deepseek-chat',temp:0.85},
-  mem:{sum:'',keep:10},
   user:{name:'搭档',persona:'与凯尔同行的搭档，正在共同执行横跨荒原的委托。'},
-  world:'硬派奇幻冒险世界，注重环境氛围与兽人动作细节描写。',
-  cur:'c_kael',
+  world:{globalPrompt:'硬派奇幻冒险世界，注重环境氛围与兽人动作细节描写。',entries:[]},
   chars:DEF_CHARS,
-  msgs:[
-    {role:'nar',sid:'c_nar',sname:'旁白',txt:DEF_CHARS[1].first,arch:false},
-    {role:'char',sid:'c_kael',sname:'凯尔',txt:DEF_CHARS[0].first,arch:false}
-  ]
+  chats:[
+    {
+      id:'chat_1',
+      title:'与凯尔的荒原私聊',
+      mode:'1v1',
+      targetId:'c_kael',
+      mem:{sum:'',keep:10},
+      msgs:[
+        {role:'char',sid:'c_kael',sname:'凯尔',txt:DEF_CHARS[0].first,arch:false}
+      ]
+    }
+  ],
+  curChatId:'chat_1'
 };
-var S=(function(){try{var r=localStorage.getItem('RPS_V5');return r?Object.assign({},DEF_S,JSON.parse(r)):JSON.parse(JSON.stringify(DEF_S))}catch(e){return JSON.parse(JSON.stringify(DEF_S))}})();
-var busy=false,ac=null,sIdx=-1,edM={t:'edit',i:-1};
-function save(){try{localStorage.setItem('RPS_V5',JSON.stringify(S))}catch(e){}}
+var S=(function(){try{var r=localStorage.getItem('RPS_V6');return r?Object.assign({},DEF_S,JSON.parse(r)):JSON.parse(JSON.stringify(DEF_S))}catch(e){return JSON.parse(JSON.stringify(DEF_S))}})(),busy=false,ac=null,edM={i:-1};
+function save(){try{localStorage.setItem('RPS_V6',JSON.stringify(S))}catch(e){}}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function mac(s,cn){return String(s||'').replace(/\{\{user\}\}/gi,S.user.name||'搭档').replace(/\{\{char\}\}/gi,cn||'角色')}
 function getC(id){return S.chars.find(function(c){return c.id===id})}
+function getCurChat(){return S.chats.find(function(ch){return ch.id===S.curChatId})||S.chats[0]}
 
 function render(){
-  var ir=S.chars.filter(function(c){return c.inRoom});
-  $('rt').textContent=ir.map(function(c){return c.name}).join(' · ')||'无角色';
-  var actCnt=S.msgs.filter(function(m){return !m.arch}).length;
-  $('rs').textContent=S.mem.sum?'摘要已启用':('上下文 '+actCnt+' 条');
-  if(ir.length&&!ir.some(function(c){return c.id===S.cur}))S.cur=ir[0].id;
+  var ch=getCurChat();if(!ch)return;
+  $('rt').textContent=ch.title;
+  var actCnt=ch.msgs.filter(function(m){return !m.arch}).length;
+  $('rs').textContent=ch.mem.sum?'摘要已启用':('上下文 '+actCnt+' 条');
 
   var st=$('strip');st.innerHTML='';
-  ir.forEach(function(c){
-    var b=document.createElement('button');b.className='chip'+(c.id===S.cur?' on':'');b.textContent=c.name;
-    b.onclick=function(){S.cur=c.id;save();render()};st.appendChild(b);
-  });
-  var b1=document.createElement('button');b1.className='chip gh';b1.textContent='让TA接话';b1.onclick=function(){reply(S.cur)};st.appendChild(b1);
-  var b2=document.createElement('button');b2.className='chip';b2.textContent='+ 旁白';b2.onclick=function(){openEd('nar',-1)};st.appendChild(b2);
+  if(ch.mode==='group'){
+    var ir=S.chars.filter(function(c){return c.inRoom});
+    ir.forEach(function(c){
+      var b=document.createElement('button');b.className='chip'+(c.id===ch.targetId?' on':'');b.textContent=c.name;
+      b.onclick=function(){ch.targetId=c.id;save();render()};st.appendChild(b);
+    });
+    var b1=document.createElement('button');b1.className='chip gh';b1.textContent='让TA接话';b1.onclick=function(){reply(ch.targetId)};st.appendChild(b1);
+    var b2=document.createElement('button');b2.className='chip';b2.textContent='+ 旁白';b2.onclick=function(){openEd(-1)};st.appendChild(b2);
+  }else{
+    var tc=getC(ch.targetId);
+    var span=document.createElement('span');span.style.cssText='font-size:12px;color:var(--sub);padding:4px 8px';
+    span.textContent='1v1 私聊模式：正与 '+(tc?tc.name:'未知')+' 对话';st.appendChild(span);
+  }
 
   var box=$('chat');box.innerHTML='';
-  var dShown=false,hasA=S.msgs.some(function(m){return m.arch});
-  S.msgs.forEach(function(m,i){
+  var dShown=false,hasA=ch.msgs.some(function(m){return m.arch});
+  ch.msgs.forEach(function(m,i){
     if(hasA&&!m.arch&&!dShown&&i>0){
-      dShown=true;var d=document.createElement('div');d.className='divd';d.textContent='以上对话已提炼至「记忆」摘要，不再消耗 Token';box.appendChild(d);
+      dShown=true;var d=document.createElement('div');d.className='divd';d.textContent='以上对话已压缩至摘要，不再消耗 Token';box.appendChild(d);
     }
     var isN=m.role==='nar'||m.sname==='旁白';
     var rt=m.role==='user'?'user':(isN?'nar':'char');
-    var row=document.createElement('div');row.className='row '+rt+(m.arch?' arch':'')+(sIdx===i?' sel':'');
-    var sn=m.role==='user'?(S.user.name||'你'):(m.sname||'角色');
+    var row=document.createElement('div');row.className='row '+rt+(m.arch?' arch':'');
+    var sn=m.role==='user'?(S.user.name||'搭档'):(m.sname||'角色');
     var av=rt==='nar'?'':'<div class="av">'+esc(sn.slice(0,1))+'</div>';
     var h=esc(mac(m.txt,sn)).replace(/\*([^*]+)\*/g,'<em>*$1*</em>');
     row.innerHTML=av+'<div class="mmain"><div class="msend">'+esc(sn)+(m.arch?' · 已归档':'')+'</div>'+
-      '<div class="bub" onclick="sel('+i+',event)">'+h+'</div>'+
-      '<div class="macts">'+(rt!=='user'?'<button class="abtn" onclick="reroll('+i+',event)">重生成</button>':'')+
-      '<button class="abtn" onclick="openEd(\'edit\','+i+',event)">编辑</button>'+
-      '<button class="abtn" onclick="rollbk('+i+',event)">回档至此</button>'+
-      '<button class="abtn dg" onclick="delM('+i+',event)">删除</button></div></div>';
+      '<div class="bub">'+h+'</div>'+
+      '<div class="macts">'+
+      (rt!=='user'?'<button class="abtn" onclick="reroll('+i+')">重生成</button>':'')+
+      '<button class="abtn" onclick="openEd('+i+')">编辑</button>'+
+      '<button class="abtn" onclick="rollbk('+i+')">回档</button>'+
+      '<button class="abtn dg" onclick="delM('+i+')">删除</button></div></div>';
     box.appendChild(row);
   });
   box.scrollTop=box.scrollHeight;
+  renderDrawer();
 }
-function sel(i,e){if(e)e.stopPropagation();sIdx=sIdx===i?-1:i;render()}
+
+function renderDrawer(){
+  var sl=$('slist');sl.innerHTML='';
+  S.chats.forEach(function(ch){
+    var d=document.createElement('div');d.className='sitem'+(ch.id===S.curChatId?' act':'');
+    d.innerHTML='<div><div style="font-weight:600;font-size:13.5px">'+esc(ch.title)+'</div><div style="font-size:11px;color:var(--sub)">'+(ch.mode==='1v1'?'1v1私聊':'群聊剧场')+'</div></div>'+
+      '<button class="abtn dg" onclick="delChat(\''+ch.id+'\',event)">删除</button>';
+    d.onclick=function(){S.curChatId=ch.id;save();render();toggleDrawer(false)};
+    sl.appendChild(d);
+  });
+}
+
+function toggleDrawer(open){$('drawer').classList.toggle('show',open);$('d-mask').classList.toggle('show',open)}
+
+function newChatModal(){
+  var sel=$('nc-char');sel.innerHTML='';
+  S.chars.forEach(function(c){var opt=document.createElement('option');opt.value=c.id;opt.textContent=c.name;sel.appendChild(opt)});
+  $('nc-title').value='';openM('m-newchat');toggleDrawer(false);
+}
+
+function createChatCommit(){
+  var title=$('nc-title').value.trim()||'新对话',mode=$('nc-mode').value,tId=$('nc-char').value;
+  var tc=getC(tId);
+  var initMsgs=[];
+  if(tc&&tc.first)initMsgs.push({role:tc.name==='旁白'?'nar':'char',sid:tc.id,sname:tc.name,txt:tc.first,arch:false});
+  var newCh={id:'chat_'+Date.now(),title:title,mode:mode,targetId:tId,mem:{sum:'',keep:10},msgs:initMsgs};
+  S.chats.push(newCh);S.curChatId=newCh.id;save();render();closeM('m-newchat');
+}
+
+function delChat(id,e){
+  e.stopPropagation();if(S.chats.length<=1){alert('至少需要保留一个对话存档。');return}
+  if(confirm('确认删除该对话存档？')){S.chats=S.chats.filter(function(ch){return ch.id!==id});S.curChatId=S.chats[0].id;save();render()}
+}
+
 function sendOrStop(){
   if(busy){if(ac)ac.abort();return}
-  var v=$('uin').value.trim();
-  if(!v){reply(S.cur);return}
+  var v=$('uin').value.trim(),ch=getCurChat();
+  if(!v){reply(ch.mode==='1v1'?ch.targetId:(ch.targetId||S.chars[0].id));return}
   $('uin').value='';
-  S.msgs.push({role:'user',sid:'user',sname:S.user.name||'搭档',txt:v,arch:false});
-  save();render();reply(S.cur);
+  ch.msgs.push({role:'user',sid:'user',sname:S.user.name||'搭档',txt:v,arch:false});
+  save();render();reply(ch.mode==='1v1'?ch.targetId:ch.targetId);
 }
+
 async function reply(cid){
   if(busy)return;
-  var sp=getC(cid)||S.chars.find(function(c){return c.inRoom});
+  var ch=getCurChat(),sp=getC(cid)||S.chars[0];
   if(!sp){openM('m-char');return}
-  if(!S.api.key){openM('m-set');alert('请先在「设置」中填入 API Key 并保存');return}
+  if(!S.api.key){openM('m-set');alert('请先在「设置」中填入 API Key');return}
   busy=true;ac=new AbortController();
   $('sbtn').classList.add('stop');$('sbtn').textContent='■';
   var tm={role:sp.name==='旁白'?'nar':'char',sid:sp.id,sname:sp.name,txt:'...',arch:false};
-  S.msgs.push(tm);render();
+  ch.msgs.push(tm);render();
   try{
-    var act=S.msgs.slice(0,-1).filter(function(m){return !m.arch});
-    var sys=['[世界观]\n'+mac(S.world,sp.name),S.mem.sum?'[前情提要]\n'+mac(S.mem.sum,sp.name):'','[玩家('+S.user.name+')]\n'+mac(S.user.persona,sp.name),'[你扮演的角色]\n名称：'+sp.name+'\n设定：'+mac(sp.desc,sp.name)+'\n指令：'+mac(sp.prompt,sp.name)+'\n严禁代替玩家发言。'].filter(Boolean).join('\n\n');
+    var act=ch.msgs.slice(0,-1).filter(function(m){return !m.arch});
+    var recentTxt=act.slice(-6).map(function(m){return m.txt}).join('\n');
+    var trigLore=(S.world.entries||[]).filter(function(en){return en.keys&&en.keys.some(function(k){return recentTxt.includes(k)})}).map(function(en){return '['+en.keys.join('/')+']: '+en.content}).join('\n');
+
+    var sys=[
+      '[全局世界观]\n'+mac(S.world.globalPrompt,sp.name),
+      trigLore?('[触发世界书词条]\n'+trigLore):'',
+      ch.mem.sum?('[前情提要摘要]\n'+mac(ch.mem.sum,sp.name)):'',
+      '[玩家设定('+S.user.name+')]\n'+mac(S.user.persona,sp.name),
+      '[你当前扮演的角色]\n名称：'+sp.name+'\n设定：'+mac(sp.desc,sp.name)+'\n指令：'+mac(sp.prompt,sp.name)+'\n严禁代替玩家发言。'
+    ].filter(Boolean).join('\n\n');
+
     var turns=[];
     act.forEach(function(m){
       var r=(m.role!=='user'&&m.sid===sp.id)?'assistant':'user';
@@ -266,6 +339,7 @@ async function reply(cid){
     });
     if(!turns.length||turns[turns.length-1].role==='assistant')turns.push({role:'user',content:'[请继续以 '+sp.name+' 的身份回应]'});
     if(turns[0].role==='assistant')turns.unshift({role:'user',content:'[开始]'});
+
     var u=S.api.url.replace(/\/+$/,'');if(u.indexOf('/chat/completions')<0)u+='/chat/completions';
     var res=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.api.key.trim()},body:JSON.stringify({model:S.api.model||'deepseek-chat',messages:[{role:'system',content:sys}].concat(turns),temperature:Number(S.api.temp)||0.85}),signal:ac.signal});
     if(!res.ok)throw new Error('HTTP '+res.status);
@@ -274,37 +348,43 @@ async function reply(cid){
   }catch(e){tm.txt=e.name==='AbortError'?'[已停止]':('请求失败：'+e.message)}
   finally{busy=false;ac=null;$('sbtn').classList.remove('stop');$('sbtn').textContent='↑';save();render()}
 }
+
 async function compress(){
   if(!S.api.key){alert('请先设置 API Key');return}
-  var keep=Math.max(2,parseInt($('mkeep').value,10)||10),ua=[];
-  S.msgs.forEach(function(m,i){if(!m.arch)ua.push(i)});
+  var ch=getCurChat(),keep=Math.max(2,parseInt($('mkeep').value,10)||10),ua=[];
+  ch.msgs.forEach(function(m,i){if(!m.arch)ua.push(i)});
   if(ua.length<=keep){alert('未归档消息不多，无需压缩');return}
-  var tc=ua.slice(0,ua.length-keep),blk=tc.map(function(i){return S.msgs[i].sname+'：'+S.msgs[i].txt}).join('\n');
+  var tc=ua.slice(0,ua.length-keep),blk=tc.map(function(i){return ch.msgs[i].sname+'：'+ch.msgs[i].txt}).join('\n');
   $('cbtn').textContent='提炼中...';
   try{
     var u=S.api.url.replace(/\/+$/,'')+'/chat/completions';
-    var res=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.api.key.trim()},body:JSON.stringify({model:'deepseek-chat',messages:[{role:'user',content:'请将以下前情与新增对话合并提炼为250字以内的文游剧情摘要：\n原摘要：'+(S.mem.sum||'无')+'\n对话：\n'+blk}]})});
+    var res=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.api.key.trim()},body:JSON.stringify({model:'deepseek-chat',messages:[{role:'user',content:'请将以下前情与新增对话合并提炼为250字以内的文游剧情摘要：\n原摘要：'+(ch.mem.sum||'无')+'\n对话：\n'+blk}]})});
     var d=await res.json(),sum=d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content;
-    if(sum){S.mem.sum=sum.trim();tc.forEach(function(i){S.msgs[i].arch=true});save();openM('m-mem');render()}
+    if(sum){ch.mem.sum=sum.trim();tc.forEach(function(i){ch.msgs[i].arch=true});save();openM('m-mem');render()}
   }catch(e){alert('失败：'+e.message)}finally{$('cbtn').textContent='立即调用 AI 压缩早期对话'}
 }
-function unarch(){S.msgs.forEach(function(m){m.arch=false});save();openM('m-mem');render()}
-function openEd(t,i,e){if(e)e.stopPropagation();edM={t:t,i:i};$('ed-ta').value=t==='edit'?S.msgs[i].txt:'';openM('m-ed')}
-function saveEd(){var v=$('ed-ta').value.trim();if(!v)return;if(edM.t==='edit')S.msgs[edM.i].txt=v;else S.msgs.push({role:'nar',sid:'c_nar',sname:'旁白',txt:v,arch:false});sIdx=-1;save();render();closeM('m-ed')}
-function rollbk(i,e){if(e)e.stopPropagation();if(confirm('确认删除此条及之后所有消息回档？')){S.msgs.splice(i);sIdx=-1;save();render()}}
-function delM(i,e){if(e)e.stopPropagation();S.msgs.splice(i,1);sIdx=-1;save();render()}
-function reroll(i,e){if(e)e.stopPropagation();var sid=S.msgs[i].sid;S.msgs.splice(i);sIdx=-1;save();render();reply(sid)}
+function unarch(){var ch=getCurChat();ch.msgs.forEach(function(m){m.arch=false});save();openM('m-mem');render()}
+
+function openEd(i){edM={i:i};$('ed-ta').value=i>=0?getCurChat().msgs[i].txt:'';openM('m-ed')}
+function saveEd(){
+  var v=$('ed-ta').value.trim(),ch=getCurChat();if(!v)return;
+  if(edM.i>=0)ch.msgs[edM.i].txt=v;
+  else ch.msgs.push({role:'nar',sid:'c_nar',sname:'旁白',txt:v,arch:false});
+  save();render();closeM('m-ed');
+}
+function rollbk(i){if(confirm('确认删除此条及之后所有消息回档？')){getCurChat().msgs.splice(i);save();render()}}
+function delM(i){getCurChat().msgs.splice(i,1);save();render()}
+function reroll(i){var ch=getCurChat(),sid=ch.msgs[i].sid;ch.msgs.splice(i);save();render();reply(sid)}
+
 function rChars(){
   var b=$('clist');b.innerHTML='';
   S.chars.forEach(function(c){
     var d=document.createElement('div');d.className='citem';
-    d.innerHTML='<div style="font-weight:600">'+esc(c.name)+' <span style="font-size:11px;color:var(--ac)">'+(c.inRoom?'[在场]':'[离场]')+'</span></div>'+
-      '<div style="font-size:12px;color:var(--sub)">'+esc((c.desc||'').slice(0,70))+'</div>'+
-      '<div class="brow"><button class="btn" onclick="togC(\''+c.id+'\')">'+(c.inRoom?'移出':'拉入')+'</button><button class="btn" onclick="editC(\''+c.id+'\')">编辑</button><button class="btn dg" onclick="delC(\''+c.id+'\')">删除</button></div>';
+    d.innerHTML='<div style="font-weight:600">'+esc(c.name)+'</div><div style="font-size:12px;color:var(--sub)">'+esc((c.desc||'').slice(0,70))+'</div>'+
+      '<div class="brow"><button class="btn" onclick="editC(\''+c.id+'\')">编辑</button><button class="btn dg" onclick="delC(\''+c.id+'\')">删除</button></div>';
     b.appendChild(d);
   });
 }
-function togC(id){var c=getC(id);if(c){c.inRoom=!c.inRoom;save();rChars();render()}}
 function delC(id){S.chars=S.chars.filter(function(c){return c.id!==id});save();rChars();render()}
 function editC(id){
   $('ced').style.display='flex';var c=id?getC(id):null;
@@ -314,7 +394,7 @@ function saveC(){
   var id=$('cid').value,n=$('cname').value.trim();if(!n)return;
   var d=$('cdesc').value.trim(),p=$('cprompt').value.trim(),f=$('cfirst').value.trim();
   if(id){var c=getC(id);if(c){c.name=n;c.desc=d;c.prompt=p;c.first=f}}
-  else{var nc={id:'c_'+Date.now(),name:n,desc:d,prompt:p,first:f,inRoom:true};S.chars.push(nc);if(f)S.msgs.push({role:'char',sid:nc.id,sname:n,txt:f,arch:false})}
+  else{var nc={id:'c_'+Date.now(),name:n,desc:d,prompt:p,first:f,inRoom:true};S.chars.push(nc)}
   $('ced').style.display='none';save();rChars();render();
 }
 async function impC(e){
@@ -323,20 +403,30 @@ async function impC(e){
     var f=fs[i],t=await f.text(),bn=f.name.replace(/\.(json|txt|md)$/i,'');
     try{
       var j=JSON.parse(t),k=j.data||j;
-      var nc={id:'c_'+Date.now()+i,name:k.name||k.char_name||bn,desc:[k.description||'',k.personality||'',k.scenario||''].filter(Boolean).join('\n'),prompt:k.system_prompt||'',first:k.first_mes||'',inRoom:true};
-      S.chars.push(nc);if(nc.first)S.msgs.push({role:'char',sid:nc.id,sname:nc.name,txt:nc.first,arch:false});
+      S.chars.push({id:'c_'+Date.now()+i,name:k.name||k.char_name||bn,desc:[k.description||'',k.personality||'',k.scenario||''].filter(Boolean).join('\n'),prompt:k.system_prompt||'',first:k.first_mes||'',inRoom:true});
     }catch(er){S.chars.push({id:'c_'+Date.now()+i,name:bn,desc:t,prompt:'',first:'',inRoom:true})}
   }
   save();rChars();render();
 }
 async function impW(e){var f=e.target.files[0];if(f)$('wglob').value+='\n'+(await f.text())}
-function saveW(){S.user.name=$('uname').value.trim()||'搭档';S.user.persona=$('upersona').value.trim();S.world=$('wglob').value.trim();save();render();closeM('m-world')}
-function saveM(){S.mem.keep=parseInt($('mkeep').value,10)||10;S.mem.sum=$('msum').value.trim();save();render();closeM('m-mem')}
+function saveW(){
+  S.user.name=$('uname').value.trim()||'搭档';S.user.persona=$('upersona').value.trim();S.world.globalPrompt=$('wglob').value.trim();
+  try{S.world.entries=JSON.parse($('wentries').value||'[]')}catch(e){}
+  save();render();closeM('m-world');
+}
+function saveM(){var ch=getCurChat();ch.mem.keep=parseInt($('mkeep').value,10)||10;ch.mem.sum=$('msum').value.trim();save();render();closeM('m-mem')}
 function preset(u,m){$('aurl').value=u;$('amodel').value=m}
 function saveSet(){S.api.url=$('aurl').value.trim();S.api.key=$('akey').value.trim();S.api.model=$('amodel').value.trim();S.api.temp=parseFloat($('atemp').value)||0.85;save();closeM('m-set')}
-function resetChat(){if(confirm('清空当前对话重开？')){S.msgs=[{role:'nar',sid:'c_nar',sname:'旁白',txt:DEF_CHARS[1].first,arch:false},{role:'char',sid:'c_kael',sname:'凯尔',txt:DEF_CHARS[0].first,arch:false}];S.mem.sum='';save();render();closeM('m-set')}}
+function resetAll(){if(confirm('确认重置所有数据？')){localStorage.removeItem('RPS_V6');location.reload()}}
 function dl(o,n){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(o,null,2)],{type:'application/json'}));a.download=n;a.click()}
-
+function openM(id){
+  if(id==='m-char')rChars();
+  if(id==='m-world'){$('uname').value=S.user.name;$('upersona').value=S.user.persona;$('wglob').value=S.world.globalPrompt;$('wentries').value=JSON.stringify(S.world.entries||[])}
+  if(id==='m-mem'){var ch=getCurChat();$('minfo').textContent='活跃消息：'+ch.msgs.filter(function(m){return !m.arch}).length+' 条 | 已归档：'+ch.msgs.filter(function(m){return m.arch}).length+' 条';$('mkeep').value=ch.mem.keep;$('msum').value=ch.mem.sum}
+  if(id==='m-set'){$('aurl').value=S.api.url;$('akey').value=S.api.key;$('amodel').value=S.api.model;$('atemp').value=S.api.temp}
+  $(id).classList.add('show');
+}
+function closeM(id){$(id).classList.remove('show')}
 render();
 </script>
 </body>
