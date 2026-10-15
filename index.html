@@ -6,20 +6,20 @@
   <title>幻境酒馆 · AI文游与多角色聊天室</title>
   <style>
     :root {
-      --glass-bg: rgba(255, 255, 255, 0.68);
-      --glass-bg-strong: rgba(255, 255, 255, 0.85);
-      --glass-border: rgba(255, 255, 255, 0.55);
+      --glass-bg: rgba(255, 255, 255, 0.65);
+      --glass-bg-strong: rgba(255, 255, 255, 0.88);
+      --glass-border: rgba(255, 255, 255, 0.6);
       --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.12);
       --primary: #6366f1;
       --primary-grad: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-      --user-bubble: linear-gradient(135deg, rgba(99, 102, 241, 0.88) 0%, rgba(168, 85, 247, 0.88) 100%);
-      --char-bubble: rgba(255, 255, 255, 0.78);
-      --narrator-bubble: rgba(254, 243, 199, 0.82);
+      --user-bubble: linear-gradient(135deg, rgba(99, 102, 241, 0.9) 0%, rgba(168, 85, 247, 0.9) 100%);
+      --char-bubble: rgba(255, 255, 255, 0.82);
+      --narrator-bubble: rgba(254, 243, 199, 0.86);
       --text-main: #1e293b;
       --text-sub: #64748b;
-      --radius-lg: 22px;
-      --radius-md: 16px;
-      --radius-sm: 12px;
+      --radius-xl: 24px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
     }
 
     * {
@@ -29,37 +29,39 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    body, html {
+    html, body {
       width: 100%;
       height: 100%;
+      height: 100dvh;
       overflow: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
       color: var(--text-main);
       background: #0f172a;
     }
 
-    /* 背景图层 */
+    /* 动态梦幻毛玻璃底层背景 */
     #app-bg {
       position: fixed;
       inset: 0;
       z-index: 0;
-      background-image: radial-gradient(at 15% 15%, hsla(253,80%,75%,1) 0px, transparent 55%),
-                        radial-gradient(at 85% 20%, hsla(320,75%,78%,1) 0px, transparent 55%),
-                        radial-gradient(at 50% 85%, hsla(210,85%,75%,1) 0px, transparent 55%),
-                        linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+      background-image:
+        radial-gradient(at 12% 18%, hsla(255, 85%, 78%, 1) 0px, transparent 55%),
+        radial-gradient(at 88% 15%, hsla(325, 80%, 80%, 1) 0px, transparent 55%),
+        radial-gradient(at 50% 88%, hsla(205, 90%, 78%, 1) 0px, transparent 55%),
+        linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
       background-size: cover;
       background-position: center;
-      transition: background-image 0.3s ease;
+      transition: background-image 0.35s ease;
     }
 
     #app-bg::after {
       content: "";
       position: absolute;
       inset: 0;
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.14);
     }
 
-    /* 主容器 */
+    /* 主应用容器：适配手机刘海与底部手势条 */
     #app {
       position: relative;
       z-index: 1;
@@ -67,27 +69,30 @@
       flex-direction: column;
       width: 100%;
       height: 100%;
-      max-width: 768px;
+      height: 100dvh;
+      max-width: 780px;
       margin: 0 auto;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 
-    /* 毛玻璃通用类 */
     .glass {
       background: var(--glass-bg);
-      backdrop-filter: blur(18px) saturate(160%);
-      -webkit-backdrop-filter: blur(18px) saturate(160%);
+      backdrop-filter: blur(20px) saturate(170%);
+      -webkit-backdrop-filter: blur(20px) saturate(170%);
       border: 1px solid var(--glass-border);
       box-shadow: var(--glass-shadow);
     }
 
-    /* 顶部导航栏 */
+    /* 顶部毛玻璃导航栏（针对手机窄屏优化） */
     .topbar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 16px;
-      margin: 10px 12px 6px;
-      border-radius: var(--radius-lg);
+      gap: 8px;
+      padding: 10px 14px;
+      margin: 8px 10px 4px;
+      border-radius: var(--radius-xl);
       flex-shrink: 0;
     }
 
@@ -96,26 +101,39 @@
       align-items: center;
       gap: 10px;
       min-width: 0;
+      flex: 1;
+    }
+
+    .room-status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+      flex-shrink: 0;
     }
 
     .room-title-wrap {
       min-width: 0;
+      flex: 1;
     }
 
     .room-title {
-      font-size: 16px;
-      font-weight: 700;
+      font-size: 15px;
+      font-weight: 800;
+      color: #0f172a;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .room-subtitle {
-      font-size: 11px;
+      font-size: 11.5px;
       color: var(--text-sub);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      margin-top: 1px;
     }
 
     .topbar-actions {
@@ -124,45 +142,47 @@
       flex-shrink: 0;
     }
 
-    .icon-btn {
-      border: 1px solid rgba(255, 255, 255, 0.6);
-      background: rgba(255, 255, 255, 0.55);
-      color: var(--text-main);
-      padding: 7px 11px;
+    .nav-pill {
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      background: rgba(255, 255, 255, 0.62);
+      color: #1e293b;
+      padding: 6px 10px;
       border-radius: 14px;
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 12.5px;
+      font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      transition: all 0.18s ease;
+      transition: transform 0.15s ease, background 0.15s ease;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
     }
 
-    .icon-btn:active {
-      transform: scale(0.94);
-      background: rgba(255, 255, 255, 0.85);
+    .nav-pill:active {
+      transform: scale(0.93);
+      background: rgba(255, 255, 255, 0.9);
     }
 
-    /* 聊天消息区 */
+    /* 聊天消息滚动区 */
     #chat-container {
       flex: 1;
       overflow-y: auto;
-      padding: 10px 14px 16px;
+      padding: 10px 12px 14px;
       display: flex;
       flex-direction: column;
       gap: 14px;
       scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
     }
 
     .msg-row {
       display: flex;
-      gap: 10px;
+      gap: 9px;
       align-items: flex-start;
-      animation: fadeIn 0.22s ease-out;
+      animation: msgFadeIn 0.2s ease-out;
     }
 
-    @keyframes fadeIn {
+    @keyframes msgFadeIn {
       from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
     }
@@ -176,24 +196,25 @@
     }
 
     .avatar {
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
       object-fit: cover;
-      border: 2px solid rgba(255, 255, 255, 0.85);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border: 2px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       flex-shrink: 0;
-      background: #e2e8f0;
+      background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 700;
-      font-size: 15px;
-      color: #475569;
+      font-weight: 800;
+      font-size: 14px;
+      color: #4f46e5;
+      cursor: pointer;
     }
 
     .msg-main {
-      max-width: 78%;
+      max-width: calc(100% - 54px);
       display: flex;
       flex-direction: column;
       gap: 4px;
@@ -204,34 +225,36 @@
     }
 
     .msg-row.narrator .msg-main {
-      max-width: 92%;
+      max-width: 95%;
+      width: 100%;
       align-items: center;
     }
 
     .msg-sender {
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 11.5px;
+      font-weight: 700;
       color: #334155;
       padding: 0 6px;
-      text-shadow: 0 1px 2px rgba(255,255,255,0.7);
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
     }
 
+    /* 圆角毛玻璃气泡 */
     .bubble {
       padding: 11px 15px;
       border-radius: 20px;
       font-size: 14.5px;
-      line-height: 1.58;
+      line-height: 1.62;
       word-break: break-word;
       white-space: pre-wrap;
       position: relative;
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 4px 18px rgba(15, 23, 42, 0.07);
     }
 
     .msg-row.char .bubble {
       background: var(--char-bubble);
-      border: 1px solid rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.78);
       border-top-left-radius: 6px;
       color: #0f172a;
     }
@@ -245,44 +268,63 @@
 
     .msg-row.narrator .bubble {
       background: var(--narrator-bubble);
-      border: 1px solid rgba(251, 191, 36, 0.45);
-      border-radius: 16px;
+      border: 1px solid rgba(251, 191, 36, 0.55);
+      border-radius: 18px;
       color: #78350f;
       font-size: 13.5px;
-      text-align: left;
       width: 100%;
     }
 
-    /* 心理/动作描写斜体高亮 */
-    .bubble em.action-text {
+    /* 思考链折叠框 (支持 DeepSeek R1) */
+    .reasoning-box {
+      font-size: 12px;
       color: #64748b;
-      font-style: italic;
+      background: rgba(241, 245, 249, 0.7);
+      border-left: 3px solid #94a3b8;
+      padding: 6px 10px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      white-space: pre-wrap;
     }
+
+    /* 动作与心理描写斜体高亮 */
+    .bubble em.action-text {
+      color: #6366f1;
+      font-style: italic;
+      font-weight: 500;
+    }
+
     .msg-row.user .bubble em.action-text {
-      color: rgba(255, 255, 255, 0.82);
+      color: rgba(255, 255, 255, 0.85);
     }
 
     .msg-tools {
       display: flex;
-      gap: 8px;
+      flex-wrap: wrap;
+      gap: 6px;
       padding: 0 4px;
-      opacity: 0.75;
     }
 
     .msg-tool-btn {
-      background: none;
-      border: none;
+      background: rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      border-radius: 99px;
       font-size: 11px;
       color: #475569;
       cursor: pointer;
-      padding: 2px 4px;
+      padding: 2px 8px;
+      backdrop-filter: blur(6px);
     }
 
-    /* 底部区域：角色点名栏 + 输入框 */
+    .msg-tool-btn:active {
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    /* 底部毛玻璃控制台 */
     .bottom-dock {
-      margin: 4px 12px 10px;
-      padding: 10px 12px;
-      border-radius: var(--radius-lg);
+      margin: 2px 10px 8px;
+      padding: 9px 11px;
+      border-radius: var(--radius-xl);
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -292,11 +334,12 @@
     .speaker-bar {
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 6px;
       overflow-x: auto;
       padding-bottom: 2px;
       scrollbar-width: none;
     }
+
     .speaker-bar::-webkit-scrollbar {
       display: none;
     }
@@ -304,13 +347,13 @@
     .speaker-chip {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       padding: 5px 11px;
       border-radius: 999px;
       font-size: 12px;
-      font-weight: 600;
-      background: rgba(255, 255, 255, 0.58);
-      border: 1px solid rgba(255, 255, 255, 0.7);
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.62);
+      border: 1px solid rgba(255, 255, 255, 0.78);
       color: #334155;
       white-space: nowrap;
       cursor: pointer;
@@ -326,8 +369,8 @@
     }
 
     .speaker-chip img {
-      width: 18px;
-      height: 18px;
+      width: 17px;
+      height: 17px;
       border-radius: 50%;
       object-fit: cover;
     }
@@ -335,26 +378,41 @@
     .input-row {
       display: flex;
       align-items: flex-end;
-      gap: 8px;
+      gap: 7px;
+    }
+
+    .quick-narrator-btn {
+      height: 40px;
+      width: 40px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      background: rgba(255, 255, 255, 0.65);
+      font-size: 16px;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     #user-input {
       flex: 1;
-      border: 1px solid rgba(255, 255, 255, 0.75);
-      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.82);
+      background: rgba(255, 255, 255, 0.78);
       border-radius: 18px;
-      padding: 10px 14px;
+      padding: 9px 13px;
       font-size: 14.5px;
+      line-height: 1.45;
       color: var(--text-main);
-      max-height: 110px;
-      min-height: 42px;
+      max-height: 105px;
+      min-height: 40px;
       resize: none;
       outline: none;
       font-family: inherit;
     }
 
     #user-input:focus {
-      background: rgba(255, 255, 255, 0.92);
+      background: rgba(255, 255, 255, 0.95);
       border-color: #6366f1;
     }
 
@@ -362,31 +420,32 @@
       border: none;
       background: var(--primary-grad);
       color: #fff;
-      height: 42px;
-      padding: 0 16px;
+      height: 40px;
+      padding: 0 15px;
       border-radius: 18px;
       font-weight: 700;
-      font-size: 14px;
+      font-size: 13.5px;
       cursor: pointer;
       flex-shrink: 0;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.32);
     }
 
     .send-btn:disabled {
-      opacity: 0.5;
+      opacity: 0.55;
     }
 
-    /* 弹窗 Modal 系统 */
+    /* 模态弹窗系统 */
     .modal-mask {
       position: fixed;
       inset: 0;
       z-index: 100;
-      background: rgba(15, 23, 42, 0.45);
-      backdrop-filter: blur(6px);
+      background: rgba(15, 23, 42, 0.48);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 14px;
+      padding: 12px;
     }
 
     .modal-mask.show {
@@ -396,47 +455,50 @@
     .modal-card {
       width: 100%;
       max-width: 560px;
-      max-height: 88vh;
+      max-height: 88dvh;
       background: var(--glass-bg-strong);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255,255,255,0.8);
+      backdrop-filter: blur(26px);
+      -webkit-backdrop-filter: blur(26px);
+      border: 1px solid rgba(255, 255, 255, 0.85);
       border-radius: 24px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.22);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
 
     .modal-header {
-      padding: 15px 18px;
-      border-bottom: 1px solid rgba(0,0,0,0.06);
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-shrink: 0;
     }
 
     .modal-title {
-      font-size: 16px;
-      font-weight: 700;
+      font-size: 15.5px;
+      font-weight: 800;
     }
 
     .modal-close {
-      background: rgba(0,0,0,0.06);
+      background: rgba(0, 0, 0, 0.07);
       border: none;
       width: 30px;
       height: 30px;
       border-radius: 50%;
-      font-size: 16px;
+      font-size: 15px;
+      font-weight: 700;
       cursor: pointer;
     }
 
     .modal-body {
-      padding: 16px 18px;
+      padding: 14px 16px 18px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
+      -webkit-overflow-scrolling: touch;
     }
 
     .form-group {
@@ -451,38 +513,52 @@
       color: #334155;
     }
 
-    .form-input, .form-textarea, .form-select {
+    .form-input, .form-textarea {
       width: 100%;
       padding: 9px 12px;
-      border-radius: 12px;
+      border-radius: 13px;
       border: 1px solid rgba(148, 163, 184, 0.45);
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.9);
       font-size: 13.5px;
       font-family: inherit;
+      color: #0f172a;
       outline: none;
     }
 
+    .form-input:focus, .form-textarea:focus {
+      border-color: #6366f1;
+      background: #fff;
+    }
+
     .form-textarea {
-      min-height: 76px;
+      min-height: 78px;
       resize: vertical;
-      line-height: 1.5;
+      line-height: 1.55;
     }
 
     .btn-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 7px;
     }
 
     .btn {
-      padding: 8px 14px;
+      padding: 7px 12px;
       border-radius: 12px;
-      font-size: 13px;
-      font-weight: 600;
-      border: 1px solid rgba(0,0,0,0.08);
-      background: #fff;
+      font-size: 12.5px;
+      font-weight: 700;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      background: rgba(255, 255, 255, 0.9);
       color: #1e293b;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .btn:active {
+      transform: scale(0.96);
     }
 
     .btn.primary {
@@ -497,45 +573,46 @@
       border-color: #fecaca;
     }
 
-    /* 角色列表卡片 */
+    /* 角色列表卡片（专为手机竖屏优化的上下分层卡片布局） */
     .char-list-item {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 12px;
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.7);
-      border: 1px solid rgba(255,255,255,0.9);
+      flex-direction: column;
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid rgba(255, 255, 255, 0.95);
       gap: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
     }
 
     .char-info {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 10px;
       min-width: 0;
-      flex: 1;
     }
 
     .char-meta {
       min-width: 0;
+      flex: 1;
     }
 
     .char-name {
-      font-weight: 700;
-      font-size: 14px;
+      font-weight: 800;
+      font-size: 14.5px;
       display: flex;
       align-items: center;
+      flex-wrap: wrap;
       gap: 6px;
     }
 
     .badge {
-      font-size: 10px;
-      padding: 2px 7px;
+      font-size: 10.5px;
+      padding: 2px 8px;
       border-radius: 99px;
-      background: #e0e7ff;
-      color: #4338ca;
-      font-weight: 600;
+      background: #e2e8f0;
+      color: #475569;
+      font-weight: 700;
     }
 
     .badge.in-room {
@@ -546,18 +623,30 @@
     .char-desc {
       font-size: 12px;
       color: var(--text-sub);
-      white-space: nowrap;
+      margin-top: 3px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
       overflow: hidden;
-      text-overflow: ellipsis;
+      line-height: 1.45;
+    }
+
+    .char-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding-top: 8px;
+      border-top: 1px dashed rgba(148, 163, 184, 0.3);
     }
 
     .hint-box {
       font-size: 12px;
       color: #475569;
-      background: rgba(241, 245, 249, 0.85);
+      background: rgba(241, 245, 249, 0.9);
       padding: 10px 12px;
-      border-radius: 12px;
+      border-radius: 14px;
       line-height: 1.5;
+      border: 1px solid rgba(226, 232, 240, 0.9);
     }
   </style>
 </head>
@@ -568,15 +657,16 @@
     <!-- 顶部毛玻璃导航栏 -->
     <header class="topbar glass">
       <div class="topbar-left">
+        <div class="room-status-dot"></div>
         <div class="room-title-wrap">
           <div class="room-title" id="room-title-display">幻境文游剧场</div>
-          <div class="room-subtitle" id="room-members-display">点击右侧管理角色卡、世界书与API</div>
+          <div class="room-subtitle" id="room-members-display">正在载入角色...</div>
         </div>
       </div>
       <div class="topbar-actions">
-        <button class="icon-btn" onclick="openModal('char-modal')">👥 角色卡</button>
-        <button class="icon-btn" onclick="openModal('world-modal')">🌍 世界观</button>
-        <button class="icon-btn" onclick="openModal('settings-modal')">⚙️ 设置</button>
+        <button class="nav-pill" onclick="openModal('char-modal')">👥 角色</button>
+        <button class="nav-pill" onclick="openModal('world-modal')">🌍 世界</button>
+        <button class="nav-pill" onclick="openModal('settings-modal')">⚙️ 设置</button>
       </div>
     </header>
 
@@ -589,7 +679,8 @@
       <div class="speaker-bar" id="speaker-bar"></div>
 
       <div class="input-row">
-        <textarea id="user-input" rows="1" placeholder="输入对话或行动（可用 *星号* 描写动作）..."></textarea>
+        <button class="quick-narrator-btn" title="插入旁白或剧情事件" onclick="openTextEditorModal('narrator', -1)">🎬</button>
+        <textarea id="user-input" rows="1" placeholder="输入对话或行动（如 *拔出长剑*）..."></textarea>
         <button class="send-btn" id="send-btn" onclick="handleUserSend()">发送</button>
       </div>
     </footer>
@@ -599,56 +690,56 @@
   <div class="modal-mask" id="char-modal">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title">👥 角色卡管理 & 多人房间编队</div>
+        <div class="modal-title">👥 角色卡管理 & 多人同房编队</div>
         <button class="modal-close" onclick="closeModal('char-modal')">✕</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" id="char-modal-body">
         <div class="hint-box">
-          支持直接导入 <strong>SillyTavern / 酒馆 JSON 角色卡</strong>、自定义 JSON 或 TXT 设定。勾选「在房间中」即可让多位角色同时进群互动！
+          支持直接导入 <strong>SillyTavern 酒馆 JSON、自定义 JSON 或 TXT/MD 设定</strong>。想让谁进群聊，直接点「拉入房间」即可！
         </div>
 
         <div class="btn-row">
-          <button class="btn primary" onclick="openCharEditor(null)">＋ 新建角色卡</button>
-          <button class="btn" onclick="document.getElementById('char-file-input').click()">📂 导入 JSON/TXT 角色卡</button>
-          <button class="btn" onclick="exportAllCharacters()">💾 导出全部角色 JSON</button>
+          <button class="btn primary" onclick="openCharEditor(null)">＋ 手写新建角色</button>
+          <button class="btn" onclick="document.getElementById('char-file-input').click()">📂 导入 JSON / TXT 角色卡</button>
+          <button class="btn" onclick="exportAllCharacters()">💾 导出备份</button>
           <input type="file" id="char-file-input" accept=".json,.txt,.md" multiple style="display:none" onchange="importCharacterFiles(event)" />
         </div>
 
-        <div id="char-list-container" style="display:flex;flex-direction:column;gap:8px;"></div>
-
-        <!-- 内嵌角色编辑器 -->
-        <div id="char-editor-panel" style="display:none;border-top:1px solid rgba(0,0,0,0.1);padding-top:12px;flex-direction:column;gap:10px;">
-          <div style="font-weight:700;font-size:14px;" id="char-editor-title">编辑角色预设</div>
+        <!-- 角色编辑表单（展开时置顶显示，无需翻找） -->
+        <div id="char-editor-panel" style="display:none;background:rgba(241,245,249,0.95);padding:12px;border-radius:16px;border:1px solid #cbd5e1;flex-direction:column;gap:10px;">
+          <div style="font-weight:800;font-size:14px;color:#4f46e5;" id="char-editor-title">编辑角色预设</div>
           <input type="hidden" id="edit-char-id" />
           <div class="form-group">
             <label>角色名称 (name)</label>
             <input class="form-input" id="edit-char-name" placeholder="例如：澜澜 / 银狼 / 旁白DM" />
           </div>
           <div class="form-group">
-            <label>角色头像 (支持图片URL 或 手机本地上传)</label>
-            <div style="display:flex;gap:8px;">
-              <input class="form-input" id="edit-char-avatar" placeholder="https://... 或点击右侧上传本地图" />
-              <button class="btn" onclick="document.getElementById('avatar-upload-input').click()">上传图片</button>
+            <label>角色头像 (图片外链 或 从手机相册上传)</label>
+            <div style="display:flex;gap:6px;">
+              <input class="form-input" id="edit-char-avatar" placeholder="https://... 或点击右侧上传" />
+              <button class="btn" style="flex-shrink:0;" onclick="document.getElementById('avatar-upload-input').click()">📱 相册</button>
               <input type="file" id="avatar-upload-input" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)" />
             </div>
           </div>
           <div class="form-group">
-            <label>人物设定与外貌性格 (description / personality)</label>
-            <textarea class="form-textarea" id="edit-char-desc" placeholder="角色的性格特征、身份背景、说话口癖、与玩家的关系..."></textarea>
+            <label>人物设定、外貌与性格 (description / personality)</label>
+            <textarea class="form-textarea" id="edit-char-desc" placeholder="角色的性格特征、身份背景、外貌细节、与玩家的关系..."></textarea>
           </div>
           <div class="form-group">
-            <label>专属系统指令 / 扮演要求 (system_prompt / scenario)</label>
-            <textarea class="form-textarea" id="edit-char-prompt" placeholder="例如：保持傲娇语气，动作和神态用*星号*包裹..."></textarea>
+            <label>专属扮演指令 / 说话风格 (system_prompt / scenario)</label>
+            <textarea class="form-textarea" id="edit-char-prompt" placeholder="例如：保持傲娇语气，动作和心理描写放在 *星号* 之间..."></textarea>
           </div>
           <div class="form-group">
             <label>开场白 (first_mes)</label>
-            <textarea class="form-textarea" id="edit-char-firstmes" placeholder="角色进入房间或重置对话时的第一句话..."></textarea>
+            <textarea class="form-textarea" id="edit-char-firstmes" placeholder="角色进房或重开对话时的第一句台词..."></textarea>
           </div>
           <div class="btn-row">
-            <button class="btn primary" onclick="saveCharacterFromEditor()">保存角色预设</button>
+            <button class="btn primary" onclick="saveCharacterFromEditor()">✅ 保存角色卡</button>
             <button class="btn" onclick="document.getElementById('char-editor-panel').style.display='none'">取消</button>
           </div>
         </div>
+
+        <div id="char-list-container" style="display:flex;flex-direction:column;gap:10px;"></div>
       </div>
     </div>
   </div>
@@ -657,16 +748,16 @@
   <div class="modal-mask" id="world-modal">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title">🌍 世界观设定集 & 文游规则 (Lorebook)</div>
+        <div class="modal-title">🌍 世界观设定集 & 文游规则</div>
         <button class="modal-close" onclick="closeModal('world-modal')">✕</button>
       </div>
       <div class="modal-body">
         <div class="hint-box">
-          可随时切换或导入世界观文件（支持 <strong>JSON 世界书 / TXT / Markdown</strong>）。支持设置「全局世界观」与「关键词触发词条」。
+          支持导入 <strong>JSON 世界书 (World Info)、TXT 或 Markdown</strong>。可自由定义你在文游中的主角身份与世界规则。
         </div>
 
         <div class="btn-row">
-          <button class="btn" onclick="document.getElementById('world-file-input').click()">📂 导入世界观文件 (.json/.txt/.md)</button>
+          <button class="btn" onclick="document.getElementById('world-file-input').click()">📂 导入世界观 (.json/.txt/.md)</button>
           <button class="btn" onclick="exportWorldbook()">💾 导出世界观 JSON</button>
           <input type="file" id="world-file-input" accept=".json,.txt,.md" style="display:none" onchange="importWorldFile(event)" />
         </div>
@@ -674,21 +765,21 @@
         <div class="form-group">
           <label>玩家扮演身份设定 (User Persona)</label>
           <input class="form-input" id="user-name-input" placeholder="你的名字（如：旅行者 / 陆仁）" />
-          <textarea class="form-textarea" id="user-persona-input" style="min-height:54px;margin-top:4px;" placeholder="你在文游中的身份、外貌、初始能力或与角色的关系..."></textarea>
+          <textarea class="form-textarea" id="user-persona-input" style="min-height:58px;margin-top:5px;" placeholder="你在文游中的身份、外貌、初始能力或与各角色的关系..."></textarea>
         </div>
 
         <div class="form-group">
           <label>全局世界观大纲 / 文游规则 (常驻生效)</label>
-          <textarea class="form-textarea" id="world-global-input" style="min-height:110px;" placeholder="输入大世界背景、力量体系、当前所处场景、文游状态栏格式要求等..."></textarea>
+          <textarea class="form-textarea" id="world-global-input" style="min-height:110px;" placeholder="输入大世界背景、境界体系、当前场景、或者文游状态栏输出格式..."></textarea>
         </div>
 
         <div class="form-group">
-          <label>关键词动态词条 (JSON 数组格式，触发关键词时自动注入)</label>
-          <textarea class="form-textarea" id="world-entries-input" style="min-height:100px;font-family:monospace;font-size:12px;" placeholder='[{"keys":["青云门","宗门"],"content":"青云门是正道第一大宗，掌门为玄机子..."}]'></textarea>
+          <label>关键词动态词条 (JSON 数组，对话提及关键词时自动触发)</label>
+          <textarea class="form-textarea" id="world-entries-input" style="min-height:95px;font-family:monospace;font-size:12px;" placeholder='[{"keys":["青云门","宗门"],"content":"青云门是正道第一大宗..."}]'></textarea>
         </div>
 
         <div class="btn-row">
-          <button class="btn primary" onclick="saveWorldSettings()">保存世界观与玩家设定</button>
+          <button class="btn primary" style="width:100%;" onclick="saveWorldSettings()">✅ 保存世界观与玩家设定</button>
         </div>
       </div>
     </div>
@@ -698,12 +789,12 @@
   <div class="modal-mask" id="settings-modal">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title">⚙️ API 接口 & 毛玻璃外观设置</div>
+        <div class="modal-title">⚙️ API 接口 & 外观存档设置</div>
         <button class="modal-close" onclick="closeModal('settings-modal')">✕</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label>快速填入主流接口预设</label>
+          <label>一键填入常用 API 预设</label>
           <div class="btn-row">
             <button class="btn" onclick="fillApiPreset('https://api.deepseek.com/v1', 'deepseek-chat')">DeepSeek V3</button>
             <button class="btn" onclick="fillApiPreset('https://api.deepseek.com/v1', 'deepseek-reasoner')">DeepSeek R1</button>
@@ -717,7 +808,7 @@
         </div>
 
         <div class="form-group">
-          <label>API Key (仅保存在你的手机本地)</label>
+          <label>API Key (仅保存在你的手机浏览器本地)</label>
           <input class="form-input" type="password" id="api-key-input" placeholder="sk-..." />
         </div>
 
@@ -727,35 +818,54 @@
         </div>
 
         <div class="form-group">
-          <label>温度 (Temperature: 0.1 ~ 1.5，文游推荐 0.85~1.1) & 记忆轮数</label>
-          <div style="display:flex;gap:8px;">
-            <input class="form-input" type="number" step="0.05" id="api-temp-input" placeholder="0.9" />
-            <input class="form-input" type="number" id="api-context-input" placeholder="20" title="携带上下文消息条数" />
+          <label>温度 (0.1~1.5) & 携带上下文条数 & 流式输出</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input class="form-input" type="number" step="0.05" id="api-temp-input" placeholder="0.9" style="width:90px;" />
+            <input class="form-input" type="number" id="api-context-input" placeholder="24" style="width:90px;" />
+            <label style="display:flex;align-items:center;gap:4px;font-size:12.5px;cursor:pointer;">
+              <input type="checkbox" id="api-stream-input" checked /> 流式打字机
+            </label>
           </div>
         </div>
 
         <div class="form-group">
-          <label>自定义聊天室背景壁纸 (毛玻璃底图)</label>
+          <label>自定义毛玻璃聊天背景壁纸</label>
           <div class="btn-row">
-            <button class="btn" onclick="document.getElementById('bg-upload-input').click()">🖼️ 从手机相册选择背景图</button>
+            <button class="btn" onclick="document.getElementById('bg-upload-input').click()">🖼️ 从手机相册换背景</button>
             <button class="btn" onclick="resetBgWallpaper()">恢复默认渐变</button>
             <input type="file" id="bg-upload-input" accept="image/*" style="display:none" onchange="handleBgUpload(event)" />
           </div>
         </div>
 
         <div class="form-group">
-          <label>会话与存档管理</label>
+          <label>文游剧本存档管理</label>
           <div class="btn-row">
-            <button class="btn" onclick="insertNarratorMessage()">🎬 插入旁白/剧情转折</button>
-            <button class="btn" onclick="exportChatHistory()">💾 导出当前剧本记录 (.json)</button>
-            <button class="btn" onclick="document.getElementById('history-import-input').click()">📂 导入剧本存档</button>
+            <button class="btn" onclick="exportChatHistory()">💾 导出剧本存档 (.json)</button>
+            <button class="btn" onclick="document.getElementById('history-import-input').click()">📂 读取剧本存档</button>
             <button class="btn danger" onclick="clearChatHistory()">🗑️ 清空重开</button>
             <input type="file" id="history-import-input" accept=".json" style="display:none" onchange="importChatHistory(event)" />
           </div>
         </div>
 
-        <div class="btn-row" style="margin-top:6px;">
-          <button class="btn primary" style="width:100%;" onclick="saveApiSettings()">保存全部设置</button>
+        <div class="btn-row" style="margin-top:4px;">
+          <button class="btn primary" style="width:100%;" onclick="saveApiSettings()">✅ 保存全部设置</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 多行文本编辑/插入旁白专用毛玻璃弹窗 (替代简陋的系统 prompt) -->
+  <div class="modal-mask" id="text-editor-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title" id="text-editor-title">✏️ 编辑内容</div>
+        <button class="modal-close" onclick="closeModal('text-editor-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <textarea class="form-textarea" id="text-editor-textarea" style="min-height:160px;" placeholder="输入多行台词、动作描写或旁白剧情转折..."></textarea>
+        <div class="btn-row">
+          <button class="btn primary" style="flex:1;" onclick="confirmTextEditorModal()">✅ 确认保存</button>
+          <button class="btn" onclick="closeModal('text-editor-modal')">取消</button>
         </div>
       </div>
     </div>
@@ -768,9 +878,9 @@
         id: 'char_lanlan',
         name: '澜澜',
         avatar: '',
-        description: '蓝发女仆装的元气少女，性格温柔又带一点小傲娇，喜欢陪伴玩家聊天与冒险。',
+        description: '蓝发女仆装的元气少女，性格温柔又带一点小傲娇，喜欢陪伴玩家聊天与异世界文游冒险。',
         system_prompt: '你扮演澜澜。说话自然生动，神态与动作描写请放在 *星号* 之间，对玩家充满好奇与关心。',
-        first_mes: '*轻轻整理了一下蓝白相间的裙摆，探出头看向你* 呼~ 终于连上线啦！今天想聊点什么，还是直接开启一段新的异世界文游冒险？',
+        first_mes: '*轻轻整理了一下蓝白相间的裙摆，笑眯眯地探出头看向你* 呼~ 这次脚本彻底修好啦！你可以点右上角「角色」导入你的 JSON 角色卡，或者在「设置」里填上 API Key 开始文游哦！',
         inRoom: true
       },
       {
@@ -779,7 +889,7 @@
         avatar: '',
         description: '负责推进剧情、描绘环境氛围、判定玩家行动结果与扮演路人NPC的文游主持人（DM）。',
         system_prompt: '你是文字冒险游戏（TRPG/文游）的旁白与地下城主（DM）。请用细腻的文学笔触描绘场景、光影、气氛以及玩家行动引发的后续事件，推动剧情发展，不要代替玩家做决定。',
-        first_mes: '【世界载入完成】微风拂过古老的石板路，远处的钟楼敲响了黄昏的钟声。你的故事从这里正式拉开帷幕。',
+        first_mes: '【世界载入完成】欢迎来到幻境酒馆！点击底部的角色名字即可切换由谁回复你；点击「✨ 接话」可让多位角色轮流互动。',
         inRoom: true
       }
     ];
@@ -790,16 +900,17 @@
         apiKey: '',
         model: 'deepseek-chat',
         temperature: 0.9,
-        maxContext: 24
+        maxContext: 24,
+        stream: true
       },
       user: {
         name: '旅行者',
         persona: '一名意外踏入这片世界的旅人，思维敏捷。'
       },
       world: {
-        globalPrompt: '这是一个奇幻与日常交织的自由世界。支持多角色互动与文游剧情推进。当多位角色在场时，请根据当前发言角色的性格自然回应上下文。',
+        globalPrompt: '这是一个奇幻与日常交织的自由文游世界。支持多角色同场互动与剧情推进。当多位角色在场时，请严格以当前指定发言角色的身份自然回应。',
         entries: [
-          { keys: ['酒馆', '幻境'], content: '「幻境酒馆」位于时空交界处，推开门即可通往任何设定的副本世界。' }
+          { keys: ['酒馆', '幻境'], content: '「幻境酒馆」位于时空交界处，推开木门即可通往任何设定的副本世界。' }
         ]
       },
       bgImage: '',
@@ -811,42 +922,49 @@
           role: 'narrator',
           senderId: 'char_dm',
           senderName: '旁白·世界之声',
-          content: '【世界载入完成】欢迎来到幻境酒馆！你可以点击右上角「角色卡」导入你的 JSON 角色，或点击底部角色名切换当前由谁来回复你。'
+          content: '【世界载入完成】欢迎来到幻境酒馆！点击右上角「👥 角色」即可导入你的 JSON 角色卡，点击底部角色名可自由指定下一句由谁接话。'
         },
         {
           id: 'msg_init_2',
           role: 'char',
           senderId: 'char_lanlan',
           senderName: '澜澜',
-          content: '*轻轻整理了一下蓝白相间的裙摆，笑眯眯地挥了挥手* 终于见面啦！如果你有 JSON 角色卡或者世界观文件，随时点上面导入进来，想拉几个人进群聊都可以哦~'
+          content: '*轻轻整理了一下蓝白相间的裙摆，笑眯眯地挥了挥手* 终于成功连上线啦！快去右上角导入你的 JSON 角色卡或者世界观试试看吧~'
         }
       ]
     };
 
     let state = loadState();
     let isGenerating = false;
+    let textEditorMode = { type: 'edit', index: -1 };
 
     function loadState() {
       try {
-        const raw = localStorage.getItem('AI_RP_STUDIO_STATE_V1');
+        const raw = localStorage.getItem('AI_RP_STUDIO_STATE_V2');
         if (!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
         const parsed = JSON.parse(raw);
-        return Object.assign({}, DEFAULT_STATE, parsed);
+        return {
+          ...DEFAULT_STATE,
+          ...parsed,
+          api: { ...DEFAULT_STATE.api, ...(parsed.api || {}) },
+          user: { ...DEFAULT_STATE.user, ...(parsed.user || {}) },
+          world: { ...DEFAULT_STATE.world, ...(parsed.world || {}) }
+        };
       } catch (e) {
         return JSON.parse(JSON.stringify(DEFAULT_STATE));
       }
     }
 
-    function saveState() {
-      try {
-        localStorage.setItem('AI_RP_STUDIO_STATE_V1', JSON.stringify(state));
-      } catch (e) {
-        alert('本地存储空间已满（可能是上传的图片过大），建议清理部分图片或导出备份。');
+    功能 savestate() {
+      尝试 {
+        localStorage.setitem('AI_RP_STUDIO_STATE_V2', JSON.使字符串化(状态));
+      } 赶上 (e) {
+        警惕的('本地存储空间不足（可能是背景或头像图片过大），建议压缩图片或导出存档。');
       }
     }
 
     // ========= 初始化渲染 =========
-    function initApp() {
+    功能 initApp() {
       applyBgWallpaper();
       renderTopbar();
       renderSpeakerBar();
@@ -854,773 +972,56 @@
       setupAutoResizeTextarea();
     }
 
-    function applyBgWallpaper() {
-      const bgEl = document.getElementById('app-bg');
-      if (state.bgImage) {
-        bgEl.style.backgroundImage = `url(${state.bgImage})`;
-      } else {
-        bgEl.style.backgroundImage = '';
+    功能 applyBgWallpaper() {
+      ConstbgEl=文件.getElementById('app-bg');
+      如果 (状态.bgImage) {
+        bgEl.风格.BackgroundImage='url(${状态.bgImage})'；
+      } 其他 {
+        bgEl.风格.BackgroundImage='';
       }
-    }
+}}}triggerBtn..innerHTMtriggerBtn.innerHTMtriggerBtn.innerHTM.innerHTMtriggerBtngetelement BYID('speakerbar')；bar=document.getElement BYID('speakerbar')；常量bar=document.getElement BYID('speakerbar')；bar=document.getElement BYID('speakerbar')；常量bar=document.getElement BYID('speakerbar')；innerHTMtriggerBtn.innerHTM='}triggerBtn.innerHTMtriggerBtn。innerHTM。innerHTMtriggerBtn。innerHTM。innerHTMtriggerBtn。innerHTM。innerHTMtriggerBtn.innerHTM
 
-    function renderTopbar() {
-      const inRoomChars = state.characters.filter(c => c.inRoom);
-      const names = inRoomChars.map(c => c.name).join('、') || '暂无角色在房间';
-      document.getElementById('room-title-display').textContent = `幻境聊天室 (${inRoomChars.length}人在线)`;
-      document.getElementById('room-members-display').textContent = `当前在场：${names}`;
-    }
+.(){函数renderTopbar(){(){函数renderTopbar(){ConstinRoomChars=状态.字符.过滤器(c=>c.InRoom)；常量inRoomChars=状态.字符.筛选器(c=>c.InRoom)；inRoomChars=状态。字符。过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；){函数renderTopbar(){(){函数renderTopbar(){(){函数renderTopbar(){(){函数renderTopbar(){ConstinRoomChars=状态.字符.过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；inRoomChars=状态.字符.过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；){函数renderTopbar(){(){功能renderTopbar(){(){函数renderTopbar(){(){函数renderTopbar(){ConstinRoomChars=状态.字符.过滤器(c=>c.InRoom)；常量inRoomChars=状态.字符.筛选器(c=>c.InRoom)；inRoomChars=状态。字符。过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；){函数renderTopbar(){(){函数renderTopbar(){(){函数renderTopbar(){(){函数renderTopbar(){ConstinRoomChars=状态.字符.过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；inRoomChars=状态.字符.过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；){函数renderTopbar(){(){功能renderTopbar() {
+triggerBtninRoomChars=状态.字符。过滤器(c=>c.InRoom)；常量inRoomChars=状态.字符.过滤器(c=>c.InRoom)；inRoomChars=状态.字符.过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；=状态.字符.过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；inRoomChars=状态.字符.过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；字符.过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；inRoomChars=状态.字符.过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；
+c'点击右侧拉')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||；常量名称join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；const names = inRoomChars.map(c => c.name).join(' · ') || '点击右侧拉角色进房';
+文件。getElementById('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.length})'；('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent('房间标题显示')。textContent='幻境聊天室($('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.length})'；('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent('房间标题显示')。textContent=('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.length})'；('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent('房间标题显示')。textContent={inRoomChars。长度})'；文档。得到房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.length})'；('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-ElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.length})'；('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent==‘幻境聊天室(${inRoomChars.length})'；${inRoomChars.；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoo')。textContent('房间标题显示')。textContent={inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.length})'；('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent==‘幻境聊天室(${inRoomChars.length})'；${inRoomChars。；文档。getElementById('房间-标题-mChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.length})'；('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent==‘幻境聊天室(${inRoomChars。文件。getElementById('room-members-display')。textContent=名称；文件。getElementById('房间-成员-显示').textContent=')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.length})'；('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.length})'；('room-title-display').textContent='幻境聊天室(${inRoomChars.length})'；document.getElementById('room-title-display').textContent = =‘幻境聊天室(${inRoomChars.文件。getElementById('room-members-display')。textContent=名称；文件。getElementById('房间-成员-名称；('聊天室成员-显示').textContent=名称；文件。getElementById('room-members-display')。textContent=名称；('聊天室成员-显示').textContent=名称；文件。getElementById('room-members-display')。textContent=名称；('聊天室成员-显示').textContent=名称；文件。getElementById('room-members-display')。textContent=名称；('聊天室成员-显示').textContent=名称；文件。getElementById('房间-成员-显示')。textContent=名称；('聊天室成员-显示').textContent=名称；文件。得到})'；${inRoomChars.length})'；').textContent=名称；('聊天室成员-显示').textContent=名称；文件。getElementById('room-members-display')。textContent=名称；('聊天室成员-显示').textContent=名称；文件。getElementById('room-members-display')。textContent=名称；('聊天室成员-显示').textContent=名称；文件。getElementById('room-members-display')。textContent=名称；('聊天室成员-显示').textContent=名称；文件。getElementById('房间-成员-显示')。textContent=名称；('聊天室成员-显示').textContent=名称；文件。得到})'；${inRoomChars.length})`;
+.textContent.textContent
+    
 
-    // 渲染底部多角色点名栏
-    function renderSpeakerBar() {
-      const bar = document.getElementById('speaker-bar');
-      bar.innerHTML = '';
-      const inRoomChars = state.characters.filter(c => c.inRoom);
+    // 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏
+功能
+酒吧'<span style="font-size:12px；color：#64748b；">👉权利要求点射右上角"👥角='
+酒吧。innerHTML="；bar.innerHTML="；.innerHTML=常数inRoomChars=state。字符。过滤器(c=>c.InRoom)；常数inRoomChars=state。字符。过滤器(c=>c.InRoom)；.innerHTML="；bar。innerHTML="；。innerHTML=常数inRoomChars=state。字符。过滤器(c=>c.InRoom)；常数inRoomChars=state。字符。过滤器(c=>c.InRoom)；="；bar.innerHTML="；.innerHTML=常数inRoomChars=state。字符。过滤器(c=>c.InRoom)；常数inRoomChars=state。字符。过滤器(c=>c.InRoom)；.innerHTML="；bar。innerHTML="；。innerHTML=常数inRoomChars=state。字符。过滤器(c=>c.InRoom)；常数inRoomChars=state。字符。过滤器(c=>c.InRoom)；
+Const inRoomChars=state。字符。过滤器(c=>c.InRoom)；常数inRoomChars=state。字符。过滤器(c=>c.InRoom)；inRoomChars=state.字符。过滤器(c=>c.InRoom)；const inRoomChars=state.characters.filter(c=>c.inRoom)；inRoomChars=state。字符。过滤器(c=>c.InRoom)；const inRoomChars=state.characters.filter(c=>c.inRoom)；inRoomChars=state.characters.filter(c=>c.inRoom)；const inRoomChars = state.characters.filter(c => c.inRoom);
 
-      if (inRoomChars.length === 0) {
-        bar.innerHTML = `<span style="font-size:12px;color:#64748b;">请点击右上角「角色卡」勾选至少一位角色进入房间</span>`;
-        return;
-      }
-
-      if (!inRoomChars.some(c => c.id === state.activeSpeakerId)) {
-        state.activeSpeakerId = inRoomChars[0].id;
+长度======0){if(inRoomChars.长度======0){(inRoomChars.长度======0){if(inRoomChars.长度======0){(inRoomChars.长度======0){if(inRoomChars.length======0){(inRoomChars。长度======0){if(inRoomChars.length======0){(inRoomChars。长度======0){if(inRoomChars.长度======0){(inRoomChars.长度======0){if(inRoomChars.长度======0){(inRoomChars。长度======0){if(inRoomChars。长度======0){(inRoomChars。长度======0){if(inRoomChars.length====0){
+酒吧。innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；bar.innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；.innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；bar.innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；bar.innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角get元素"font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；bar.innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；.innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；bar.innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；pan>'；.innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间<平底锅
+返回；返回；
       }
 
-      inRoomChars.forEach(c => {
-        const chip = document.createElement('div');
-        chip.className = 'speaker-chip' + (c.id === state.activeSpeakerId ? ' active' : '');
-        const avatarHtml = c.avatar
-          ? `<img src="${c.avatar}" alt="" />`
-          : `<span>🎭</span>`;
-        chip.innerHTML = `${avatarHtml}<span>${escapeHtml(c.name)}</span>`;
-        chip.title = '单击切换默认回复角色；双击让该角色直接发言';
+！inRoomChars！inRoomChars.id===state.activeSpeakerId)){(！inRoomChars.some(c=>c.id===state.activeSpeakerId)){if(！inRoomChars.some(c=>c.id===state.activeSpeakerId)){(！inRoomChars.some(c=>c.ID===state.activeSpeakerId)){if(！inRoomChars.some(c=>c.id===state.activeSpeakerId)){(！inRoomChars.some(c=>c.id===state.activeSpeakerId)){if(！inRoomChars.some(c=>c.id===state.activeSpeakerId)){id===state.activeSpeakerId)){(！inRoomChars.some(c=>c.id===state.activeSpeakerId)){if(！inRoomChars.some(c=>c.id===state.activeSpeakerId'点击右侧拉角色进房map(c=>c.name).join('
+'；=inRoomChars.map(c=>c.name).join(/span>'；bar。innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；.innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；bar.innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；
+      }
 
-        chip.onclick = () => {
-          state.activeSpeakerId = c.id;
-          saveState();
-          renderSpeakerBar();
+inRoomChars。foreach(c=>{inRoomChars.foreach(c=>{.foreach(c=>{inRoomChars.foreach(c=>{.forEach(c=>{inRoomChars.forEach(c=>{.forEach(c=>{inRoomChars.forEach(c=>{(c=>{inRoomChars.foreach(c=>{.foreach(c=>{inRoomChars.foreach(c=>{.forEach(c=>{inRoomChars.forEach(c=>{.forEach(c=>{inRoomChars.forEach(c=>{(c=>{inRoomChars.foreach(c=>{.foreach(c=>{inRoomChars.foreach(c=>{.forEach(c=>{inRoomChars.forEach(c=>{.forEach(c=>{inRoomChars.forEach(c=>{(c=>{inRoomChars.foreach(c=>{.foreach(c=>{inRoomChars.foreach(c=>{.forEacH(c=>{inRoomChars.foreach(c=>{.foreach(c=>{inRoomChars.foreach(c=>{
+常量芯片=document.createElement('div')；常量芯片=文件。createElement('div')；chip=文档.createElement('div')；createElement('div')；chip=document。createElement('div')；常量chip=文档.createElement('div')；chip=文档.createElement('div')；常量chip=文档。createElement('div')；=document.createElement('div')；常量芯片=文件。createElement('div')；chip=文档.createElement('div')；createElement('div')；chip=document。createElement('div')；常量chip=文档.createElement('div')；chip=文档。createElement('div')；const chi=document.create元素('div')；常量芯片=文件。createElement('div')；chip=文档。createElement('div')；const chip=document.createElement('div')；chip=document.createElement('div')；const chip=文档。createElement('div')；chip=文档.createElement('div')；常量chip=文档。createElement('div')；=document.createElement('div')；常量芯片=文件。createElement('div')；chip=文档。createElement('div')；const chip=document.createElement('div')；chip=document.createElement('div')；const chip=文档。createElement('div')；chip=p=document。createElement('div')；('div')；const chip=document.createElement('div')；
+芯片。className='扬声器芯片'+(c.ID===state.activeSpeakerId？'active'：")；chip.className='speaker-chip'+(c.id===state.activeSpeakerId？'active'：")；.className='speaker-chip'+(c.id===state.const avatarHtml=c。avatar const avatarHtml=c。头像“活动”：")；芯片。className='扬声器-芯片'+(c.id===state.activeSpeakerId？'active'：")；='扬声器芯片'+(c.ID===state.activeSpeakerId？'active'：")；chip.className='speaker-chip'+(c.id===state.activeSpeakerId？'active'：")；.className='speaker-chip'+(c.id===state.const avatarHtml=c.avatar const avatarHtml=c.const ava=='扬声器芯片'+(c.ID===state.activeSpeakerId？'active'：")；chip.className='speaker-chip'+(c.id===state.activeSpeakerId？'active'：")；.className='speaker-chip'+(c.id===state.const avatarHtml=c。avatar const avatarHtml=c。头像“活动”：")；芯片。className='扬声器-芯片'+(c.id===state.activeSpeakerId？'active'：")；='扬声器芯片'+(c.ID===state.activeSpeakerId？'active'：")；chip.className='speaker-chip'+(c.id===state.activeSpeakerId？'active'：")；.className='speaker-chip'+(c.id===state.const avatarHtml=c.avatar const avatarHtml=c.const ava='扬声器芯片'+(c.ID===state.activeSpeakerId？'active'：")；chip.className='speaker-chip'+(c.id===state.activeSpeakerId？'active'：")；.className='speaker-chip'+(c.id===state.const avatarHtml=c。avatar const avatarHtml=c。头像“活动”：")；芯片。className='扬声器-芯片'+(c.id===state.activeSpeakerId？'active'：")；='扬声器芯片'+(c.ID===state.activeSpeakerId？'active'：")；chip.className='speaker-chip'+(c.id===state.activeSpeakerId？'active'：")；.className='speaker-chip'+(c.id===state.const avatarHtml=c.avatar const avatarHtml=c.const tarHtml=c.avatar+(c.id===state。activeSpeakerId？'active'：")；chip。className='speaker-chip'+(c.ID===状态。ActiveSpeakerId？'active'：")；.className='扬声器芯片'+(c.ID===state.Const avatarHtml=c.avatar const avatarHtml=c.头像“活动”：")；芯片。className='扬声器-芯片'+(c.id===state.activeSpeakerId？'active'：")；='扬声器芯片'+(c.ID===state.activeSpeakerId？'active'：")；chip.className='speaker-chip'+(c.id===state.activeSpeakerId？'active'：")；.className='speaker-chip'+(c.id===state.const avatarHtml=c.avatar const avatarHtml=c.const tarHtml=c.avatar const avatarHtml=c.AVatar'active'：")；芯片。className='扬声器-芯片'+(c.id===state.activeSpeakerId？'active'：")；=c.化身const avatarHtml=c.const avatarHtml=c.avatar const avatarHtml=c.头像'active'：")；芯片。className='speaker-chip'+(c.ID===state.activeSpeakerId？“活动”：“”)；常量avatarHtml=c.Avatar'active'：")；chip。className='扬声器-芯片'+(c.ID===state.activeSpeakerId？'active'：")；=c.化身const avatarHtml=c.const avatarHtml=c.avatar const avatarHtml=c.const avatarHtml=c.avatar const avatarHtml=c.头像'活动'：")；芯片。className='扬声器芯片'+(c.id===state.activeSpeakerId？'active'：")；
+const avatarHtml=c.avatar const avatarHtml=c.avatar
+？'<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<im g src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>'
+：'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；`<span>🎭</span>`;'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；
+芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；.innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；.innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；='${avatarHtml}<span>${escapeHtml(c.钠='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；=me)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；.innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；.innerHTML='${avatarHtml}<span>${escapeHtml(c.name)}</span>'；芯片。innerHTML=常量名称=inRoomChars.地图(c=>c.姓名).参加('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.地图(c=>c.姓名).参加('·')||'点击右侧拉角色进房'；=inRoomChars.地图(c=>c.姓名).参加('·')||；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；.innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；.innerHTML='${avatarHtml}<span>${escapeHtml(c.name)}</span>'；芯片。innerHTML=常量名称=inRoomChars.地图(c=>c.姓名).参加('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.地图(c=>c.姓名).参加('·')||'点击右侧拉角色进房'；=inRoomChars.地图(c=>c.姓名).参加('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.namE).连接('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；
+
+芯片。onClick=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{
+状态。activeSpeakerId=c.id；状态。activeSpeakerId=c。身份标识；。activeSpeakerId=c.id；状态。activeSpeakerId=c.id；=c.id；状态。activeSpeakerId=c。身份标识；。activeSpeakerId=c.id；状态。activeSpeakerId=c.id；=c.id；状态。activeSpeakerId=c。身份标识；。activeSpeakerId=c.id；状态。activeSpeakerId=c.id；=c.id；状态。activeSpeakerId=c。身份标识；。activeSpeakerId=c.id；状态。activeSpeakerId=c.id；=c.id；状态。activeSpeakerId=c。身份标识；。activeSpeakerId=c.id；状态。activeSpeakerId=c.id；=c.id；状态。activeSpeakerId=c。身份标识；。activeSpeakerId=c.id；状态。activeSpeakerId=c.id；=c.id；状态。activeSpeakerId=c。身份标识；。activeSpeakerId=c.id；状态。activeSpeakerId=c.id；=c.id；状态。activeSpeakerId=c。身份标识；。activeSpeakerId=c.id；状态。activeSpeakerId=c.id；
+.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格.背景='rgba(254，243，199，0.9)'；风格.背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格.背景='rgba(254，243，199，0.9)'；
+renderSpeakerBar()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar();()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar();
         };
 
-        chip.ondblclick = () => {
-          state.activeSpeakerId = c.id;
-          renderSpeakerBar();
-          triggerCharacterReply(c.id);
-        };
-
-        bar.appendChild(chip);
+酒吧。appendChild(chip)；bar。appendChild(chip)；bar。appendChild(chip)；bar.AppendChild(chip)；.appendChild(chip)；bar.appendChild(chip)；bar.appendChild(chip);bar.appendChild(chip);(chip)；bar。appendChild(chip)；bar。appendChild(chip)；bar.AppendChild(chip)；.appendChild(chip)；bar.appendChild(chip)；bar.appendChild(chip);bar.appendChild(chip);(chip)；bar。appendChild(chip)；bar。appendChild(chip)；bar.AppendChild(chip)；.appendChild(chip)；bar.appendChild(chip)；bar.appendChild(chip);bar.appendChild(chip);(chip)；bar。appendChild(chip)；bar.AppendChild(芯片)；酒吧。appendChild(chip)；。appendChild(chip)；bar。appendChild(chip)；bar。appendChild(chip)；bar.AppendChild(chip)；
       });
 
-      // 立即让当前选中角色接话按钮
-      const triggerBtn = document.createElement('div');
-      triggerBtn.className = 'speaker-chip';
-      triggerBtn.style.background = 'rgba(254, 243, 199, 0.85)';
-      triggerBtn.style.color = '#92400e';
-      triggerBtn.innerHTML = `✨ 让TA直接接话`;
-      triggerBtn.onclick = () => triggerCharacterReply(state.activeSpeakerId);
-      bar.appendChild(triggerBtn);
-    }
-
-    // 格式化文本（将 *动作描写* 转为斜体高亮）
-    function formatBubbleHtml(text) {
-      const safe = escapeHtml(text || '');
-      return safe.replace(/\*([^*]+)\*/g, '<em class="action-text">*$1*</em>');
-    }
-
-    function escapeHtml(str) {
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    }
-
-    function getCharById(id) {
-      return state.characters.find(c => c.id === id);
-    }
-
-    function renderMessages() {
-      const container = document.getElementById('chat-container');
-      container.innerHTML = '';
-
-      state.messages.forEach((m, idx) => {
-        const row = document.createElement('div');
-        const isNarrator = m.role === 'narrator' || (m.senderName && m.senderName.includes('旁白'));
-        const rowType = m.role === 'user' ? 'user' : (isNarrator ? 'narrator' : 'char');
-        row.className = `msg-row ${rowType}`;
-
-        const charObj = getCharById(m.senderId);
-        const avatarUrl = m.role === 'user' ? '' : (charObj ? charObj.avatar : '');
-        const initial = (m.senderName || 'AI').slice(0, 1);
-
-        let avatarEl = '';
-        if (rowType !== 'narrator') {
-          avatarEl = avatarUrl
-            ? `<img class="avatar" src="${avatarUrl}" alt="" />`
-            : `<div class="avatar">${escapeHtml(initial)}</div>`;
-        }
-
-        const isLast = idx === state.messages.length - 1;
-        const rerollBtn = (rowType !== 'user' && isLast)
-          ? `<button class="msg-tool-btn" onclick="rerollMessage(${idx})">🔄 重roll</button>`
-          : '';
-
-        row.innerHTML = `
-          ${avatarEl}
-          <div class="msg-main">
-            <div class="msg-sender">${escapeHtml(m.senderName || (m.role === 'user' ? state.user.name : '角色'))}</div>
-            <div class="bubble">${formatBubbleHtml(m.content)}</div>
-            <div class="msg-tools">
-              ${rerollBtn}
-              <button class="msg-tool-btn" onclick="editMessage(${idx})">✏️ 编辑</button>
-              <button class="msg-tool-btn" onclick="deleteMessage(${idx})">🗑️ 回档删除</button>
-            </div>
-          </div>
-        `;
-        container.appendChild(row);
-      });
-
-      container.scrollTop = container.scrollHeight;
-    }
-
-    // ========= 发送与 AI 响应核心逻辑 =========
-    async function handleUserSend() {
-      if (isGenerating) return;
-      const input = document.getElementById('user-input');
-      const text = input.value.trim();
-
-      if (!text) {
-        // 如果输入框为空，直接让当前选中的角色继续发言（推进剧情）
-        await triggerCharacterReply(state.activeSpeakerId);
-        return;
-      }
-
-      input.value = '';
-      input.style.height = 'auto';
-
-      state.messages.push({
-        id: 'msg_' + Date.now(),
-        role: 'user',
-        senderId: 'user',
-        senderName: state.user.name || '玩家',
-        content: text
-      });
-      saveState();
-      renderMessages();
-
-      await triggerCharacterReply(state.activeSpeakerId);
-    }
-
-    async function triggerCharacterReply(charId) {
-      if (isGenerating) return;
-      const speaker = getCharById(charId) || state.characters.find(c => c.inRoom);
-      if (!speaker) {
-        alert('请先在右上角「角色卡」中启用至少一位角色！');
-        return;
-      }
-
-      if (!state.api.apiKey) {
-        openModal('settings-modal');
-        alert('请先在设置中填入你的 API Key（如 DeepSeek API Key）即可开始对话！');
-        return;
-      }
-
-      isGenerating = true;
-      const sendBtn = document.getElementById('send-btn');
-      sendBtn.disabled = true;
-      sendBtn.textContent = '生成中...';
-
-      const isNarrator = speaker.name.includes('旁白') || speaker.name.toUpperCase().includes('DM');
-      const tempMsg = {
-        id: 'msg_' + Date.now(),
-        role: isNarrator ? 'narrator' : 'char',
-        senderId: speaker.id,
-        senderName: speaker.name,
-        content: '正在思考中...'
-      };
-      state.messages.push(tempMsg);
-      renderMessages();
-
-      try {
-        const apiMessages = buildPromptMessages(speaker);
-        const baseUrl = state.api.baseUrl.replace(/\/+$/, '');
-        const endpoint = baseUrl.endsWith('/chat/completions') ? baseUrl : `${baseUrl}/chat/completions`;
-
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${state.api.apiKey.trim()}`
-          },
-          body: JSON.stringify({
-            model: state.api.model || 'deepseek-chat',
-            messages: apiMessages,
-            temperature: Number(state.api.temperature) || 0.9,
-            stream: false
-          })
-        });
-
-        if (!response.ok) {
-          const errText = await response.text();
-          throw new Error(`HTTP ${response.status}: ${errText}`);
-        }
-
-        const data = await response.json();
-        let replyText = data.choices?.[0]?.message?.content || '（未返回内容）';
-        // 清理角色可能重复带上的自身名字前缀
-        const prefixRegex = new RegExp(`^【?${speaker.name}】?[：:]\s*`);
-        replyText = replyText.replace(prefixRegex, '').trim();
-
-        tempMsg.content = replyText;
-        saveState();
-        renderMessages();
-      } catch (err) {
-        tempMsg.content = `⚠️ 请求失败：${err.message}\n（请检查右上角「设置」中的 API Key、Base URL 或网络连接）`;
-        renderMessages();
-      } finally {
-        isGenerating = false;
-        sendBtn.disabled = false;
-        sendBtn.textContent = '发送';
-      }
-    }
-
-    // 组装多角色 + 世界观 + 关键词触发的 Prompt
-    function buildPromptMessages(speaker) {
-      const inRoomChars = state.characters.filter(c => c.inRoom);
-      const otherCharsDesc = inRoomChars
-        .filter(c => c.id !== speaker.id)
-        .map(c => `- ${c.name}：${c.description}`)
-        .join('\n');
-
-      // 检测最近消息触发的世界观词条
-      const recentText = state.messages.slice(-6).map(m => m.content).join('\n');
-      const triggeredLore = (state.world.entries || [])
-        .filter(entry => Array.isArray(entry.keys) && entry.keys.some(k => k && recentText.includes(k)))
-        .map(entry => `【词条：${entry.keys.join('/')}】${entry.content}`)
-        .join('\n');
-
-      const systemBlock = [
-        `# 世界观与全局背景\n${state.world.globalPrompt || '自由角色扮演世界'}`,
-        triggeredLore ? `# 触发的世界书设定 (Lorebook)\n${triggeredLore}` : '',
-        `# 玩家角色 (User Persona)\n姓名：${state.user.name || '玩家'}\n设定：${state.user.persona || '无特殊设定'}`,
-        otherCharsDesc ? `# 当前房间内在场的其他角色\n${otherCharsDesc}` : '',
-        `# 你当前扮演的角色（请严格以该角色第一人称或对应职能回复，不要替玩家或其他角色发言）\n角色名：${speaker.name}\n角色设定：${speaker.description || ''}\n扮演指令：${speaker.system_prompt || ''}`
-      ].filter(Boolean).join('\n\n');
-
-      const maxCtx = Number(state.api.maxContext) || 20;
-      const historySlice = state.messages.slice(-maxCtx - 1, -1); // 排除最后一条占位的“正在思考中”
-
-      const formattedHistory = historySlice.map(m => {
-        if (m.role === 'user') {
-          return { role: 'user', content: `${state.user.name || '玩家'}：${m.content}` };
-        } else if (m.senderId === speaker.id) {
-          return { role: 'assistant', content: m.content };
-        } else {
-          return { role: 'user', content: `【在场角色 ${m.senderName} 发言】：${m.content}` };
-        }
-      });
-
-      // 确保最后一条是 user 角色以兼容严格校验的推理模型
-      if (formattedHistory.length === 0 || formattedHistory[formattedHistory.length - 1].role === 'assistant') {
-        formattedHistory.push({
-          role: 'user',
-          content: `（请继续以「${speaker.name}」的身份自然接话或推进剧情）`
-        });
-      }
-
-      return [
-        { role: 'system', content: systemBlock },
-        ...formattedHistory
-      ];
-    }
-
-    // ========= 消息编辑 / 删除回档 / 重roll =========
-    function editMessage(idx) {
-      const m = state.messages[idx];
-      if (!m) return;
-      const updated = prompt(`编辑「${m.senderName}」的消息内容：`, m.content);
-      if (updated !== null) {
-        m.content = updated;
-        saveState();
-        renderMessages();
-      }
-    }
-
-    function deleteMessage(idx) {
-      if (!confirm('确定删除这条消息吗？（可用于文游回档）')) return;
-      state.messages.splice(idx, 1);
-      saveState();
-      renderMessages();
-    }
-
-    async function rerollMessage(idx) {
-      if (isGenerating) return;
-      const m = state.messages[idx];
-      if (!m) return;
-      const speakerId = m.senderId;
-      state.messages.splice(idx, 1);
-      saveState();
-      renderMessages();
-      await triggerCharacterReply(speakerId);
-    }
-
-    function insertNarratorMessage() {
-      const text = prompt('输入要插入的旁白 / 场景切换 / 剧情指令：');
-      if (!text) return;
-      state.messages.push({
-        id: 'msg_' + Date.now(),
-        role: 'narrator',
-        senderId: 'narrator',
-        senderName: '旁白·剧情事件',
-        content: text
-      });
-      saveState();
-      renderMessages();
-      closeModal('settings-modal');
-    }
-
-    // ========= 角色卡管理 & JSON 导入导出 =========
-    function renderCharList() {
-      const container = document.getElementById('char-list-container');
-      container.innerHTML = '';
-
-      state.characters.forEach((c, idx) => {
-        const item = document.createElement('div');
-        item.className = 'char-list-item';
-        const avatarHtml = c.avatar
-          ? `<img class="avatar" src="${c.avatar}" alt="" />`
-          : `<div class="avatar">${escapeHtml(c.name.slice(0,1))}</div>`;
-
-        item.innerHTML = `
-          <div class="char-info">
-            ${avatarHtml}
-            <div class="char-meta">
-              <div class="char-name">
-                <span>${escapeHtml(c.name)}</span>
-                <span class="badge ${c.inRoom ? 'in-room' : ''}">${c.inRoom ? '在房间中' : '未上场'}</span>
-              </div>
-              <div class="char-desc">${escapeHtml(c.description || c.system_prompt || '暂无描述')}</div>
-            </div>
-          </div>
-          <div class="btn-row" style="flex-shrink:0;">
-            <button class="btn" onclick="toggleCharInRoom('${c.id}')">${c.inRoom ? '移出房间' : '拉入房间'}</button>
-            <button class="btn" onclick="openCharEditor('${c.id}')">编辑</button>
-            <button class="btn" onclick="exportSingleChar('${c.id}')">导出JSON</button>
-            <button class="btn danger" onclick="deleteCharacter('${c.id}')">删除</button>
-          </div>
-        `;
-        container.appendChild(item);
-      });
-    }
-
-    function toggleCharInRoom(id) {
-      const c = getCharById(id);
-      if (!c) return;
-      c.inRoom = !c.inRoom;
-      // 如果刚被拉进房间且有开场白，询问是否发送开场白
-      if (c.inRoom && c.first_mes && state.messages.length <= 2) {
-        state.messages.push({
-          id: 'msg_' + Date.now(),
-          role: 'char',
-          senderId: c.id,
-          senderName: c.name,
-          content: c.first_mes
-        });
-      }
-      saveState();
-      renderCharList();
-      renderTopbar();
-      renderSpeakerBar();
-      renderMessages();
-    }
-
-    function openCharEditor(charId) {
-      const panel = document.getElementById('char-editor-panel');
-      panel.style.display = 'flex';
-      if (!charId) {
-        document.getElementById('char-editor-title').textContent = '＋ 新建角色卡';
-        document.getElementById('edit-char-id').value = '';
-        document.getElementById('edit-char-name').value = '';
-        document.getElementById('edit-char-avatar').value = '';
-        document.getElementById('edit-char-desc').value = '';
-        document.getElementById('edit-char-prompt').value = '';
-        document.getElementById('edit-char-firstmes').value = '';
-      } else {
-        const c = getCharById(charId);
-        if (!c) return;
-        document.getElementById('char-editor-title').textContent = `编辑角色：${c.name}`;
-        document.getElementById('edit-char-id').value = c.id;
-        document.getElementById('edit-char-name').value = c.name || '';
-        document.getElementById('edit-char-avatar').value = c.avatar || '';
-        document.getElementById('edit-char-desc').value = c.description || '';
-        document.getElementById('edit-char-prompt').value = c.system_prompt || '';
-        document.getElementById('edit-char-firstmes').value = c.first_mes || '';
-      }
-    }
-
-    function saveCharacterFromEditor() {
-      const id = document.getElementById('edit-char-id').value;
-      const name = document.getElementById('edit-char-name').value.trim();
-      if (!name) {
-        alert('请输入角色名称！');
-        return;
-      }
-      const avatar = document.getElementById('edit-char-avatar').value.trim();
-      const description = document.getElementById('edit-char-desc').value.trim();
-      const system_prompt = document.getElementById('edit-char-prompt').value.trim();
-      const first_mes = document.getElementById('edit-char-firstmes').value.trim();
-
-      if (id) {
-        const c = getCharById(id);
-        if (c) {
-          c.name = name;
-          c.avatar = avatar;
-          c.description = description;
-          c.system_prompt = system_prompt;
-          c.first_mes = first_mes;
-        }
-      } else {
-        const newChar = {
-          id: 'char_' + Date.now(),
-          name,
-          avatar,
-          description,
-          system_prompt,
-          first_mes,
-          inRoom: true
-        };
-        state.characters.push(newChar);
-        state.activeSpeakerId = newChar.id;
-        if (first_mes) {
-          state.messages.push({
-            id: 'msg_' + Date.now(),
-            role: 'char',
-            senderId: newChar.id,
-            senderName: newChar.name,
-            content: first_mes
-          });
-        }
-      }
-
-      document.getElementById('char-editor-panel').style.display = 'none';
-      saveState();
-      renderCharList();
-      renderTopbar();
-      renderSpeakerBar();
-      renderMessages();
-    }
-
-    function deleteCharacter(id) {
-      if (!confirm('确定要删除这张角色卡吗？')) return;
-      state.characters = state.characters.filter(c => c.id !== id);
-      saveState();
-      renderCharList();
-      renderTopbar();
-      renderSpeakerBar();
-    }
-
-    // 兼容 SillyTavern V1/V2 JSON、数组 JSON 与纯文本角色卡导入
-    async function importCharacterFiles(event) {
-      const files = Array.from(event.target.files || []);
-      if (!files.length) return;
-
-      let importedCount = 0;
-      for (const file of files) {
-        const text = await file.text();
-        if (file.name.endsWith('.json')) {
-          try {
-            const json = JSON.parse(text);
-            const list = Array.isArray(json) ? json : [json];
-            list.forEach(item => {
-              const core = item.data ? item.data : item;
-              const name = core.name || core.char_name || file.name.replace(/\.json$/i, '');
-              const descParts = [
-                core.description || core.char_persona || '',
-                core.personality ? `【性格】：${core.personality}` : '',
-                core.scenario || core.world_scenario ? `【场景】：${core.scenario || core.world_scenario}` : ''
-              ].filter(Boolean).join('\n');
-
-              const sysParts = [
-                core.system_prompt || '',
-                core.post_history_instructions || '',
-                core.mes_example ? `【对话示例】：\n${core.mes_example}` : ''
-              ].filter(Boolean).join('\n');
-
-              state.characters.push({
-                id: 'char_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
-                name,
-                avatar: core.avatar && core.avatar.startsWith('http') ? core.avatar : '',
-                description: descParts,
-                system_prompt: sysParts,
-                first_mes: core.first_mes || core.char_greeting || '',
-                inRoom: true
-              });
-
-              // 如果角色卡自带内嵌世界书 (character_book)，自动合并词条
-              if (core.character_book && Array.isArray(core.character_book.entries)) {
-                core.character_book.entries.forEach(e => {
-                  if (e.keys && e.content) {
-                    state.world.entries.push({ keys: e.keys, content: e.content });
-                  }
-                });
-              }
-              importedCount++;
-            });
-          } catch (err) {
-            alert(`解析 JSON 文件 ${file.name} 失败：${err.message}`);
-          }
-        } else {
-          // TXT 或 MD 纯文本直接转角色卡
-          const name = file.name.replace(/\.(txt|md)$/i, '');
-          state.characters.push({
-            id: 'char_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
-            name,
-            avatar: '',
-            description: text,
-            system_prompt: `请严格按照人物设定扮演 ${name}。`,
-            first_mes: '',
-            inRoom: true
-          });
-          importedCount++;
-        }
-      }
-
-      event.target.value = '';
-      saveState();
-      renderCharList();
-      renderTopbar();
-      renderSpeakerBar();
-      alert(`🎉 成功导入 ${importedCount} 张角色卡！已自动加入当前房间。`);
-    }
-
-    function exportSingleChar(id) {
-      const c = getCharById(id);
-      if (!c) return;
-      // 导出为兼容酒馆 V2 的 JSON 结构
-      const tavernCard = {
-        spec: 'chara_card_v2',
-        spec_version: '2.0',
-        data: {
-          name: c.name,
-          description: c.description,
-          personality: '',
-          scenario: '',
-          first_mes: c.first_mes,
-          mes_example: '',
-          system_prompt: c.system_prompt,
-          avatar: c.avatar
-        }
-      };
-      downloadJson(tavernCard, `${c.name}_角色卡.json`);
-    }
-
-    function exportAllCharacters() {
-      downloadJson(state.characters, `幻境角色卡合集_${new Date().toISOString().slice(0,10)}.json`);
-    }
-
-    // ========= 世界观与文件导入 =========
-    async function importWorldFile(event) {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      const text = await file.text();
-
-      if (file.name.endsWith('.json')) {
-        try {
-          const json = JSON.parse(text);
-          // 兼容 SillyTavern World Info 格式 (entries 对象或数组)
-          if (json.entries) {
-            const rawEntries = Array.isArray(json.entries) ? json.entries : Object.values(json.entries);
-            const parsedEntries = rawEntries.map(e => ({
-              keys: Array.isArray(e.key) ? e.key : (Array.isArray(e.keys) ? e.keys : [String(e.key || '设定')]),
-              content: e.content || e.entry || ''
-            })).filter(e => e.content);
-            state.world.entries = [...(state.world.entries || []), ...parsedEntries];
-            alert(`已从 JSON 世界书中成功导入 ${parsedEntries.length} 条动态设定词条！`);
-          } else if (json.globalPrompt || json.entries) {
-            state.world.globalPrompt = json.globalPrompt || state.world.globalPrompt;
-            state.world.entries = json.entries || state.world.entries;
-            alert('世界观配置导入成功！');
-          } else {
-            state.world.globalPrompt += '\n' + JSON.stringify(json, null, 2);
-            alert('JSON 内容已追加至全局世界观！');
-          }
-        } catch (err) {
-          alert('JSON 格式解析失败：' + err.message);
-        }
-      } else {
-        // TXT / MD 直接置入全局世界观大纲
-        state.world.globalPrompt = (state.world.globalPrompt ? state.world.globalPrompt + '\n\n' : '') + text;
-        alert(`已将「${file.name}」文本设定导入全局世界观！`);
-      }
-
-      event.target.value = '';
-      populateWorldModal();
-      saveState();
-    }
-
-    function populateWorldModal() {
-      document.getElementById('user-name-input').value = state.user.name || '';
-      document.getElementById('user-persona-input').value = state.user.persona || '';
-      document.getElementById('world-global-input').value = state.world.globalPrompt || '';
-      document.getElementById('world-entries-input').value = JSON.stringify(state.world.entries || [], null, 2);
-    }
-
-    function saveWorldSettings() {
-      state.user.name = document.getElementById('user-name-input').value.trim() || '玩家';
-      state.user.persona = document.getElementById('user-persona-input').value.trim();
-      state.world.globalPrompt = document.getElementById('world-global-input').value.trim();
-
-      try {
-        const parsed = JSON.parse(document.getElementById('world-entries-input').value || '[]');
-        if (Array.isArray(parsed)) state.world.entries = parsed;
-      } catch (err) {
-        alert('关键词动态词条 JSON 格式有误，请检查括号与引号！');
-        return;
-      }
-
-      saveState();
-      renderMessages();
-      closeModal('world-modal');
-    }
-
-    function exportWorldbook() {
-      downloadJson(state.world, `世界观设定集_${new Date().toISOString().slice(0,10)}.json`);
-    }
-
-    // ========= 设置、图片上传与存档 =========
-    function populateSettingsModal() {
-      document.getElementById('api-url-input').value = state.api.baseUrl || '';
-      document.getElementById('api-key-input').value = state.api.apiKey || '';
-      document.getElementById('api-model-input').value = state.api.model || '';
-      document.getElementById('api-temp-input').value = state.api.temperature ?? 0.9;
-      document.getElementById('api-context-input').value = state.api.maxContext ?? 24;
-    }
-
-    function fillApiPreset(url, model) {
-      document.getElementById('api-url-input').value = url;
-      document.getElementById('api-model-input').value = model;
-    }
-
-    function saveApiSettings() {
-      state.api.baseUrl = document.getElementById('api-url-input').value.trim() || 'https://api.deepseek.com/v1';
-      state.api.apiKey = document.getElementById('api-key-input').value.trim();
-      state.api.model = document.getElementById('api-model-input').value.trim() || 'deepseek-chat';
-      state.api.temperature = parseFloat(document.getElementById('api-temp-input').value) || 0.9;
-      state.api.maxContext = parseInt(document.getElementById('api-context-input').value, 10) || 24;
-      saveState();
-      closeModal('settings-modal');
-    }
-
-    function handleAvatarUpload(event) {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        document.getElementById('edit-char-avatar').value = reader.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function handleBgUpload(event) {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        state.bgImage = reader.result;
-        saveState();
-        applyBgWallpaper();
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function resetBgWallpaper() {
-      state.bgImage = '';
-      saveState();
-      applyBgWallpaper();
-    }
-
-    function clearChatHistory() {
-      if (!confirm('确定要清空当前聊天记录并重新开局吗？')) return;
-      state.messages = [];
-      // 将在场角色的开场白重新置入
-      state.characters.filter(c => c.inRoom && c.first_mes).forEach(c => {
-        const isNarrator = c.name.includes('旁白') || c.name.toUpperCase().includes('DM');
-        state.messages.push({
-          id: 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2,5),
-          role: isNarrator ? 'narrator' : 'char',
-          senderId: c.id,
-          senderName: c.name,
-          content: c.first_mes
-        });
-      });
-      saveState();
-      renderMessages();
-      closeModal('settings-modal');
-    }
-
-    function exportChatHistory() {
-      downloadJson({
-        messages: state.messages,
-        characters: state.characters,
-        world: state.world,
-        user: state.user
-      }, `文游剧本存档_${new Date().toISOString().slice(0,10)}.json`);
-    }
-
-    async function importChatHistory(event) {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      try {
-        const data = JSON.parse(await file.text());
-        if (Array.isArray(data.messages)) state.messages = data.messages;
-        if (Array.isArray(data.characters)) state.characters = data.characters;
-        if (data.world) state.world = data.world;
-        if (data.user) state.user = data.user;
-        saveState();
-        initApp();
-        closeModal('settings-modal');
-        alert('🎉 剧本存档恢复成功！');
-      } catch (err) {
-        alert('导入存档失败：' + err.message);
-      }
-      event.target.value = '';
-    }
-
-    function downloadJson(obj, filename) {
-      const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    // ========= 弹窗与输入框辅助 =========
-    function openModal(id) {
-      if (id === 'char-modal') renderCharList();
-      if (id === 'world-modal') populateWorldModal();
-      if (id === 'settings-modal') populateSettingsModal();
-      document.getElementById(id).classList.add('show');
-    }
-
-    function closeModal(id) {
-      document.getElementById(id).classList.remove('show');
-    }
-
-    function setupAutoResizeTextarea() {
-      const input = document.getElementById('user-input');
-      input.addEventListener('input', () => {
-        input.style.height = 'auto';
-        input.style.height = Math.min(input.scrollHeight, 110) + 'px';
-      });
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey && window.innerWidth > 768) {
-          e.preventDefault();
-          handleUserSend();
-        }
-      });
-    }
-
-    initApp();
-  </script>
-</body>
-</html>
+Const triggerBtn=文档。createElement('div')；常量triggerBtn=文档.createElement('div')；triggerBtn=文档。createElement('div')；常量triggerBtn=文档.createElement('div')；triggerBtn=文档。createElement('div')；常量triggerBtn=document.createElement('div')；triggerBtn=document。createElement('div')；常量triggerBtn=document。createElement('div')；triggerBtn=document。createElement('div')；常量triggerBtn=文档.createElement('div')；triggerBtn=文档。createElement('div')；常量triggerBtn=文档.createElement('div')；triggerBtn=文档。createElement('div')；常量triggerBttriggerBtn=文档。createElement('div')；常量triggerBtn=文档.createElement('div')；triggerBtn=文档。createElement('div')；常量triggerBtn=文档.createElement('div')；triggerBtn=文档。createElement('div')；常量triggerBtn=document.createElement('div')；triggerBtn=document。createElement('div')；常量triggerBtn=document。createElement('div')；triggerBtn=document。createElement('div')；常量triggerBtn=文档.createElement('div')；triggerBtn=文档。createElement('div')；常量triggerBtn=文档.createElement('div')；triggerBtn=n=文档。createElement('div')；triggerBtn=文档T('div')；常量triggerBtn=document.createElement('div')；('div')；常量triggerBtn=document.createElement('div')；triggerBtn=document。createElement('div')；常量triggerBtn=document。createElement('div')；
+triggerBtn.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；TriggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；
+triggerBtn.风格。背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格.背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格.背景='rgba(254，243，1.风格。背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格.背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景=99，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格.背景='rgba(254，243，199，0.9)'；；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格.背景='rgba(254，243，199，0.9)'；
+triggerBtn
+triggerBtn。innerHTMtriggerBtn。innerHTM。innerHTMtriggerBtn。innerHTM。innerHTMtriggerBtn。innerHTM。innerHTMtriggerBtn。innerHTM.innerHTMtriggerBtn。innerHTM。innerHTMtriggerBtn。innerHTM。innerHTMtriggerBtn.innerHTM.innerHTMtriggerBtn.innerHTM
