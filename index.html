@@ -3,23 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>幻境酒馆 · AI文游与多角色聊天室</title>
+  <title>RP Studio</title>
   <style>
     :root {
-      --glass-bg: rgba(255, 255, 255, 0.65);
-      --glass-bg-strong: rgba(255, 255, 255, 0.88);
-      --glass-border: rgba(255, 255, 255, 0.6);
-      --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.12);
-      --primary: #6366f1;
-      --primary-grad: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-      --user-bubble: linear-gradient(135deg, rgba(99, 102, 241, 0.9) 0%, rgba(168, 85, 247, 0.9) 100%);
-      --char-bubble: rgba(255, 255, 255, 0.82);
-      --narrator-bubble: rgba(254, 243, 199, 0.86);
-      --text-main: #1e293b;
-      --text-sub: #64748b;
+      --bg-base: #131314;
+      --bg-surface: #1e1f20;
+      --bg-elevated: #282a2c;
+      --glass-panel: rgba(30, 31, 32, 0.76);
+      --glass-modal: rgba(24, 25, 27, 0.92);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-border-strong: rgba(255, 255, 255, 0.14);
+      --text-primary: #e3e3e3;
+      --text-secondary: #9aa0a6;
+      --text-muted: #6e747a;
+      --accent: #a8c7fa;
+      --accent-bg: rgba(168, 199, 250, 0.14);
+      --user-bubble: #2b2d30;
+      --char-bubble: rgba(30, 31, 32, 0.65);
+      --narrator-bubble: rgba(38, 40, 44, 0.55);
+      --danger: #f28b82;
+      --radius-pill: 999px;
       --radius-xl: 24px;
-      --radius-lg: 20px;
-      --radius-md: 14px;
+      --radius-lg: 18px;
+      --radius-md: 12px;
     }
 
     * {
@@ -34,34 +40,31 @@
       height: 100%;
       height: 100dvh;
       overflow: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-      color: var(--text-main);
-      background: #0f172a;
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* 动态梦幻毛玻璃底层背景 */
     #app-bg {
       position: fixed;
       inset: 0;
       z-index: 0;
-      background-image:
-        radial-gradient(at 12% 18%, hsla(255, 85%, 78%, 1) 0px, transparent 55%),
-        radial-gradient(at 88% 15%, hsla(325, 80%, 80%, 1) 0px, transparent 55%),
-        radial-gradient(at 50% 88%, hsla(205, 90%, 78%, 1) 0px, transparent 55%),
-        linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+      background-color: var(--bg-base);
       background-size: cover;
       background-position: center;
-      transition: background-image 0.35s ease;
+      transition: opacity 0.3s ease;
     }
 
     #app-bg::after {
       content: "";
       position: absolute;
       inset: 0;
-      background: rgba(255, 255, 255, 0.14);
+      background: rgba(19, 19, 20, 0.72);
     }
 
-    /* 主应用容器：适配手机刘海与底部手势条 */
     #app {
       position: relative;
       z-index: 1;
@@ -70,29 +73,27 @@
       width: 100%;
       height: 100%;
       height: 100dvh;
-      max-width: 780px;
+      max-width: 820px;
       margin: 0 auto;
       padding-top: env(safe-area-inset-top, 0px);
       padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     .glass {
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px) saturate(170%);
-      -webkit-backdrop-filter: blur(20px) saturate(170%);
+      background: var(--glass-panel);
+      backdrop-filter: blur(20px) saturate(140%);
+      -webkit-backdrop-filter: blur(20px) saturate(140%);
       border: 1px solid var(--glass-border);
-      box-shadow: var(--glass-shadow);
     }
 
-    /* 顶部毛玻璃导航栏（针对手机窄屏优化） */
+    /* 顶部极简导航栏 */
     .topbar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      padding: 10px 14px;
-      margin: 8px 10px 4px;
-      border-radius: var(--radius-xl);
+      padding: 10px 16px;
+      margin: 8px 12px 0;
+      border-radius: var(--radius-pill);
       flex-shrink: 0;
     }
 
@@ -104,87 +105,113 @@
       flex: 1;
     }
 
-    .room-status-dot {
-      width: 10px;
-      height: 10px;
+    .brand-dot {
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      background: #22c55e;
-      box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+      background: var(--accent);
       flex-shrink: 0;
     }
 
-    .room-title-wrap {
+    .room-info {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
       min-width: 0;
-      flex: 1;
+      overflow: hidden;
     }
 
     .room-title {
-      font-size: 15px;
-      font-weight: 800;
-      color: #0f172a;
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--text-primary);
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
 
     .room-subtitle {
-      font-size: 11.5px;
-      color: var(--text-sub);
+      font-size: 12px;
+      color: var(--text-secondary);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-top: 1px;
     }
 
-    .topbar-actions {
+    .topbar-nav {
       display: flex;
-      gap: 6px;
+      align-items: center;
+      gap: 4px;
       flex-shrink: 0;
     }
 
-    .nav-pill {
-      border: 1px solid rgba(255, 255, 255, 0.75);
-      background: rgba(255, 255, 255, 0.62);
-      color: #1e293b;
-      padding: 6px 10px;
-      border-radius: 14px;
-      font-size: 12.5px;
-      font-weight: 700;
+    .nav-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-secondary);
+      padding: 5px 11px;
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      font-weight: 500;
       cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      transition: transform 0.15s ease, background 0.15s ease;
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+      transition: all 0.15s ease;
     }
 
-    .nav-pill:active {
-      transform: scale(0.93);
-      background: rgba(255, 255, 255, 0.9);
+    .nav-btn:hover, .nav-btn:active {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--glass-border);
     }
 
-    /* 聊天消息滚动区 */
+    .nav-btn.highlight {
+      color: var(--accent);
+      background: var(--accent-bg);
+    }
+
+    /* 对话流容器 */
     #chat-container {
       flex: 1;
       overflow-y: auto;
-      padding: 10px 12px 14px;
+      padding: 18px 16px 24px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 18px;
       scroll-behavior: smooth;
       -webkit-overflow-scrolling: touch;
     }
 
-    .msg-row {
-      display: flex;
-      gap: 9px;
-      align-items: flex-start;
-      animation: msgFadeIn 0.2s ease-out;
+    #chat-container::-webkit-scrollbar {
+      width: 4px;
+    }
+    #chat-container::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
     }
 
-    @keyframes msgFadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
+    .archive-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-muted);
+      font-size: 11.5px;
+      margin: 4px 0;
+    }
+    .archive-divider::before,
+    .archive-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--glass-border);
+    }
+
+    .msg-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      opacity: 1;
+      transition: opacity 0.2s ease;
+    }
+
+    .msg-row.archived {
+      opacity: 0.52;
     }
 
     .msg-row.user {
@@ -196,25 +223,24 @@
     }
 
     .avatar {
-      width: 38px;
-      height: 38px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       object-fit: cover;
-      border: 2px solid rgba(255, 255, 255, 0.9);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      background: var(--bg-elevated);
+      border: 1px solid var(--glass-border-strong);
       flex-shrink: 0;
-      background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 800;
-      font-size: 14px;
-      color: #4f46e5;
-      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-top: 2px;
     }
 
     .msg-main {
-      max-width: calc(100% - 54px);
+      max-width: calc(100% - 48px);
       display: flex;
       flex-direction: column;
       gap: 4px;
@@ -222,216 +248,221 @@
 
     .msg-row.user .msg-main {
       align-items: flex-end;
+      max-width: 82%;
     }
 
     .msg-row.narrator .msg-main {
-      max-width: 95%;
+      max-width: 96%;
       width: 100%;
+    }
+
+    .msg-header {
+      display: flex;
       align-items: center;
+      gap: 8px;
+      padding: 0 4px;
     }
 
     .msg-sender {
-      font-size: 11.5px;
-      font-weight: 700;
-      color: #334155;
-      padding: 0 6px;
-      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
     }
 
-    /* 圆角毛玻璃气泡 */
+    .msg-badge {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
     .bubble {
-      padding: 11px 15px;
-      border-radius: 20px;
-      font-size: 14.5px;
-      line-height: 1.62;
+      padding: 11px 16px;
+      border-radius: var(--radius-lg);
+      font-size: 15px;
+      line-height: 1.68;
+      color: var(--text-primary);
       word-break: break-word;
       white-space: pre-wrap;
-      position: relative;
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      box-shadow: 0 4px 18px rgba(15, 23, 42, 0.07);
+      cursor: pointer;
+      transition: border-color 0.15s ease, background 0.15s ease;
     }
 
     .msg-row.char .bubble {
       background: var(--char-bubble);
-      border: 1px solid rgba(255, 255, 255, 0.78);
+      border: 1px solid var(--glass-border);
       border-top-left-radius: 6px;
-      color: #0f172a;
     }
 
     .msg-row.user .bubble {
       background: var(--user-bubble);
-      border: 1px solid rgba(255, 255, 255, 0.35);
+      border: 1px solid var(--glass-border-strong);
       border-top-right-radius: 6px;
-      color: #ffffff;
     }
 
     .msg-row.narrator .bubble {
       background: var(--narrator-bubble);
-      border: 1px solid rgba(251, 191, 36, 0.55);
-      border-radius: 18px;
-      color: #78350f;
-      font-size: 13.5px;
-      width: 100%;
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      color: #c4c7c5;
+      font-size: 14px;
+      padding: 10px 15px;
     }
 
-    /* 思考链折叠框 (支持 DeepSeek R1) */
-    .reasoning-box {
-      font-size: 12px;
-      color: #64748b;
-      background: rgba(241, 245, 249, 0.7);
-      border-left: 3px solid #94a3b8;
-      padding: 6px 10px;
-      border-radius: 8px;
-      margin-bottom: 8px;
-      white-space: pre-wrap;
-    }
-
-    /* 动作与心理描写斜体高亮 */
+    /* 动作与神态描写斜体样式 */
     .bubble em.action-text {
-      color: #6366f1;
+      color: var(--text-secondary);
       font-style: italic;
-      font-weight: 500;
     }
 
-    .msg-row.user .bubble em.action-text {
-      color: rgba(255, 255, 255, 0.85);
+    /* R1 思考过程折叠框 */
+    .reasoning-details {
+      margin-bottom: 8px;
+      border-left: 2px solid var(--glass-border-strong);
+      padding-left: 10px;
+      font-size: 12.5px;
+      color: var(--text-secondary);
     }
-
-    .msg-tools {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      padding: 0 4px;
-    }
-
-    .msg-tool-btn {
-      background: rgba(255, 255, 255, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.65);
-      border-radius: 99px;
-      font-size: 11px;
-      color: #475569;
+    .reasoning-details summary {
       cursor: pointer;
-      padding: 2px 8px;
-      backdrop-filter: blur(6px);
+      user-select: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-bottom: 4px;
     }
 
-    .msg-tool-btn:active {
-      background: rgba(255, 255, 255, 0.9);
+    /* 轻点气泡才展开的极简操作栏 */
+    .msg-actions {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 2px 6px 0;
     }
 
-    /* 底部毛玻璃控制台 */
-    .bottom-dock {
-      margin: 2px 10px 8px;
-      padding: 9px 11px;
-      border-radius: var(--radius-xl);
+    .msg-row.selected .msg-actions {
+      display: flex;
+    }
+
+    .msg-row.selected .bubble {
+      border-color: rgba(168, 199, 250, 0.35);
+    }
+
+    .action-link {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 12px;
+      cursor: pointer;
+      padding: 2px 0;
+    }
+    .action-link:hover {
+      color: var(--text-primary);
+    }
+    .action-link.danger {
+      color: var(--danger);
+    }
+
+    /* 底部 Gemini 风格胶囊输入区 */
+    .bottom-area {
+      padding: 6px 12px 10px;
       display: flex;
       flex-direction: column;
       gap: 8px;
       flex-shrink: 0;
     }
 
-    .speaker-bar {
+    .speaker-strip {
       display: flex;
       align-items: center;
       gap: 6px;
       overflow-x: auto;
-      padding-bottom: 2px;
       scrollbar-width: none;
+      padding: 0 4px;
     }
-
-    .speaker-bar::-webkit-scrollbar {
+    .speaker-strip::-webkit-scrollbar {
       display: none;
     }
 
-    .speaker-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 5px 11px;
-      border-radius: 999px;
+    .chip {
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
       font-size: 12px;
-      font-weight: 700;
-      background: rgba(255, 255, 255, 0.62);
-      border: 1px solid rgba(255, 255, 255, 0.78);
-      color: #334155;
-      white-space: nowrap;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: rgba(30, 31, 32, 0.7);
+      border: 1px solid var(--glass-border);
       cursor: pointer;
+      white-space: nowrap;
       transition: all 0.15s ease;
       flex-shrink: 0;
     }
 
-    .speaker-chip.active {
-      background: var(--primary-grad);
-      color: #fff;
-      border-color: transparent;
-      box-shadow: 0 3px 10px rgba(99, 102, 241, 0.35);
+    .chip.active {
+      color: #0b121e;
+      background: var(--accent);
+      border-color: var(--accent);
+      font-weight: 600;
     }
 
-    .speaker-chip img {
-      width: 17px;
-      height: 17px;
-      border-radius: 50%;
-      object-fit: cover;
+    .chip.ghost {
+      color: var(--accent);
+      background: var(--accent-bg);
+      border-color: rgba(168, 199, 250, 0.2);
     }
 
-    .input-row {
+    .input-capsule {
       display: flex;
       align-items: flex-end;
-      gap: 7px;
-    }
-
-    .quick-narrator-btn {
-      height: 40px;
-      width: 40px;
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.75);
-      background: rgba(255, 255, 255, 0.65);
-      font-size: 16px;
-      cursor: pointer;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      gap: 8px;
+      padding: 8px 10px 8px 16px;
+      border-radius: 26px;
     }
 
     #user-input {
       flex: 1;
-      border: 1px solid rgba(255, 255, 255, 0.82);
-      background: rgba(255, 255, 255, 0.78);
-      border-radius: 18px;
-      padding: 9px 13px;
-      font-size: 14.5px;
-      line-height: 1.45;
-      color: var(--text-main);
-      max-height: 105px;
-      min-height: 40px;
-      resize: none;
-      outline: none;
-      font-family: inherit;
-    }
-
-    #user-input:focus {
-      background: rgba(255, 255, 255, 0.95);
-      border-color: #6366f1;
-    }
-
-    .send-btn {
+      background: transparent;
       border: none;
-      background: var(--primary-grad);
-      color: #fff;
-      height: 40px;
-      padding: 0 15px;
-      border-radius: 18px;
-      font-weight: 700;
-      font-size: 13.5px;
+      outline: none;
+      color: var(--text-primary);
+      font-size: 15px;
+      line-height: 1.5;
+      max-height: 120px;
+      min-height: 24px;
+      resize: none;
+      font-family: inherit;
+      padding: 4px 0;
+    }
+
+    #user-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .icon-circle-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: none;
+      background: var(--accent);
+      color: #0b121e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
       flex-shrink: 0;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.32);
+      transition: transform 0.12s ease, opacity 0.12s ease;
     }
 
-    .send-btn:disabled {
-      opacity: 0.55;
+    .icon-circle-btn:active {
+      transform: scale(0.92);
+    }
+
+    .icon-circle-btn.stop {
+      background: var(--danger);
+      color: #1f0909;
+    }
+
+    .icon-circle-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
     }
 
     /* 模态弹窗系统 */
@@ -439,13 +470,13 @@
       position: fixed;
       inset: 0;
       z-index: 100;
-      background: rgba(15, 23, 42, 0.48);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      background: rgba(0, 0, 0, 0.62);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 12px;
+      padding: 14px;
     }
 
     .modal-mask.show {
@@ -455,21 +486,19 @@
     .modal-card {
       width: 100%;
       max-width: 560px;
-      max-height: 88dvh;
-      background: var(--glass-bg-strong);
-      backdrop-filter: blur(26px);
-      -webkit-backdrop-filter: blur(26px);
-      border: 1px solid rgba(255, 255, 255, 0.85);
-      border-radius: 24px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      max-height: 86dvh;
+      background: var(--glass-modal);
+      border: 1px solid var(--glass-border-strong);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
 
     .modal-header {
-      padding: 14px 16px;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--glass-border);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -477,84 +506,84 @@
     }
 
     .modal-title {
-      font-size: 15.5px;
-      font-weight: 800;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
     }
 
-    .modal-close {
-      background: rgba(0, 0, 0, 0.07);
+    .close-btn {
+      background: transparent;
       border: none;
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      font-size: 15px;
-      font-weight: 700;
+      color: var(--text-secondary);
+      font-size: 13px;
       cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 8px;
+    }
+    .close-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
     }
 
     .modal-body {
-      padding: 14px 16px 18px;
+      padding: 16px 20px 22px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 14px;
       -webkit-overflow-scrolling: touch;
     }
 
-    .form-group {
+    .field {
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 6px;
     }
 
-    .form-group label {
-      font-size: 12.5px;
-      font-weight: 700;
-      color: #334155;
+    .field label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
     }
 
-    .form-input, .form-textarea {
+    .input, .textarea {
       width: 100%;
-      padding: 9px 12px;
-      border-radius: 13px;
-      border: 1px solid rgba(148, 163, 184, 0.45);
-      background: rgba(255, 255, 255, 0.9);
-      font-size: 13.5px;
+      background: var(--bg-surface);
+      border: 1px solid var(--glass-border-strong);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      color: var(--text-primary);
+      font-size: 14px;
       font-family: inherit;
-      color: #0f172a;
       outline: none;
     }
 
-    .form-input:focus, .form-textarea:focus {
-      border-color: #6366f1;
-      background: #fff;
+    .input:focus, .textarea:focus {
+      border-color: var(--accent);
     }
 
-    .form-textarea {
-      min-height: 78px;
+    .textarea {
+      min-height: 84px;
       resize: vertical;
       line-height: 1.55;
     }
 
-    .btn-row {
+    .btn-group {
       display: flex;
       flex-wrap: wrap;
-      gap: 7px;
+      gap: 8px;
     }
 
     .btn {
-      padding: 7px 12px;
-      border-radius: 12px;
-      font-size: 12.5px;
-      font-weight: 700;
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      background: rgba(255, 255, 255, 0.9);
-      color: #1e293b;
+      background: var(--bg-elevated);
+      border: 1px solid var(--glass-border-strong);
+      color: var(--text-primary);
+      padding: 7px 14px;
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      font-weight: 500;
       cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
+      transition: all 0.15s ease;
     }
 
     .btn:active {
@@ -562,91 +591,80 @@
     }
 
     .btn.primary {
-      background: var(--primary-grad);
-      color: #fff;
-      border: none;
+      background: var(--accent);
+      color: #0b121e;
+      border-color: var(--accent);
+      font-weight: 600;
     }
 
     .btn.danger {
-      background: #fee2e2;
-      color: #dc2626;
-      border-color: #fecaca;
+      background: rgba(242, 139, 130, 0.12);
+      color: var(--danger);
+      border-color: rgba(242, 139, 130, 0.3);
     }
 
-    /* 角色列表卡片（专为手机竖屏优化的上下分层卡片布局） */
-    .char-list-item {
+    .card-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      padding: 12px;
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.76);
-      border: 1px solid rgba(255, 255, 255, 0.95);
       gap: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
     }
 
-    .char-info {
+    .card-top {
       display: flex;
       align-items: flex-start;
-      gap: 10px;
-      min-width: 0;
+      gap: 12px;
     }
 
-    .char-meta {
-      min-width: 0;
+    .card-meta {
       flex: 1;
+      min-width: 0;
     }
 
-    .char-name {
-      font-weight: 800;
+    .card-name {
       font-size: 14.5px;
+      font-weight: 600;
+      color: var(--text-primary);
       display: flex;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 6px;
+      gap: 8px;
     }
 
-    .badge {
-      font-size: 10.5px;
-      padding: 2px 8px;
-      border-radius: 99px;
-      background: #e2e8f0;
-      color: #475569;
-      font-weight: 700;
+    .status-tag {
+      font-size: 11px;
+      padding: 1px 8px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-secondary);
+      font-weight: 400;
     }
 
-    .badge.in-room {
-      background: #dcfce7;
-      color: #15803d;
+    .status-tag.on {
+      background: var(--accent-bg);
+      color: var(--accent);
     }
 
-    .char-desc {
-      font-size: 12px;
-      color: var(--text-sub);
-      margin-top: 3px;
+    .card-desc {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      margin-top: 4px;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      line-height: 1.45;
     }
 
-    .char-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      padding-top: 8px;
-      border-top: 1px dashed rgba(148, 163, 184, 0.3);
-    }
-
-    .hint-box {
+    .note {
       font-size: 12px;
-      color: #475569;
-      background: rgba(241, 245, 249, 0.9);
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--glass-border);
       padding: 10px 12px;
-      border-radius: 14px;
+      border-radius: var(--radius-md);
       line-height: 1.5;
-      border: 1px solid rgba(226, 232, 240, 0.9);
     }
   </style>
 </head>
@@ -654,87 +672,88 @@
   <div id="app-bg"></div>
 
   <div id="app">
-    <!-- 顶部毛玻璃导航栏 -->
+    <!-- 顶部极简导航 -->
     <header class="topbar glass">
       <div class="topbar-left">
-        <div class="room-status-dot"></div>
-        <div class="room-title-wrap">
-          <div class="room-title" id="room-title-display">幻境文游剧场</div>
-          <div class="room-subtitle" id="room-members-display">正在载入角色...</div>
+        <span class="brand-dot"></span>
+        <div class="room-info">
+          <span class="room-title" id="room-title-text">对话</span>
+          <span class="room-subtitle" id="room-members-text"></span>
         </div>
       </div>
-      <div class="topbar-actions">
-        <button class="nav-pill" onclick="openModal('char-modal')">👥 角色</button>
-        <button class="nav-pill" onclick="openModal('world-modal')">🌍 世界</button>
-        <button class="nav-pill" onclick="openModal('settings-modal')">⚙️ 设置</button>
-      </div>
+      <nav class="topbar-nav">
+        <button class="nav-btn" onclick="openModal('char-modal')">角色</button>
+        <button class="nav-btn" onclick="openModal('world-modal')">世界</button>
+        <button class="nav-btn" id="memory-nav-btn" onclick="openModal('memory-modal')">记忆</button>
+        <button class="nav-btn" onclick="openModal('settings-modal')">设置</button>
+      </nav>
     </header>
 
-    <!-- 聊天主区域 -->
-    <main id="chat-container"></main>
+    <!-- 消息列表 -->
+    <main id="chat-container" onclick="handleContainerClick(event)"></main>
 
-    <!-- 底部毛玻璃控制栏 -->
-    <footer class="bottom-dock glass">
-      <!-- 房间内角色快速点名/触发栏 -->
-      <div class="speaker-bar" id="speaker-bar"></div>
-
-      <div class="input-row">
-        <button class="quick-narrator-btn" title="插入旁白或剧情事件" onclick="openTextEditorModal('narrator', -1)">🎬</button>
-        <textarea id="user-input" rows="1" placeholder="输入对话或行动（如 *拔出长剑*）..."></textarea>
-        <button class="send-btn" id="send-btn" onclick="handleUserSend()">发送</button>
+    <!-- 底部输入区 -->
+    <footer class="bottom-area">
+      <div class="speaker-strip" id="speaker-strip"></div>
+      <div class="input-capsule glass">
+        <textarea id="user-input" rows="1" placeholder="输入对话或行动（*星号* 表示神态动作）"></textarea>
+        <button class="icon-circle-btn" id="send-or-stop-btn" onclick="handleSendOrStop()" title="发送">
+          <svg id="send-icon" viewBox="0 0 24 24">
+            <path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"/>
+          </svg>
+        </button>
       </div>
     </footer>
   </div>
 
-  <!-- 1. 角色卡管理与JSON导入弹窗 -->
+  <!-- 1. 角色卡弹窗 -->
   <div class="modal-mask" id="char-modal">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title">👥 角色卡管理 & 多人同房编队</div>
-        <button class="modal-close" onclick="closeModal('char-modal')">✕</button>
+        <span class="modal-title">角色管理与编队</span>
+        <button class="close-btn" onclick="closeModal('char-modal')">关闭</button>
       </div>
-      <div class="modal-body" id="char-modal-body">
-        <div class="hint-box">
-          支持直接导入 <strong>SillyTavern 酒馆 JSON、自定义 JSON 或 TXT/MD 设定</strong>。想让谁进群聊，直接点「拉入房间」即可！
+      <div class="modal-body">
+        <div class="note">
+          支持导入酒馆标准 JSON、自定义 JSON 或 TXT/MD 角色设定。支持自动替换 <code>{{user}}</code> 与 <code>{{char}}</code>。
         </div>
-
-        <div class="btn-row">
-          <button class="btn primary" onclick="openCharEditor(null)">＋ 手写新建角色</button>
-          <button class="btn" onclick="document.getElementById('char-file-input').click()">📂 导入 JSON / TXT 角色卡</button>
-          <button class="btn" onclick="exportAllCharacters()">💾 导出备份</button>
+        <div class="btn-group">
+          <button class="btn primary" onclick="openCharEditor(null)">新建角色</button>
+          <button class="btn" onclick="document.getElementById('char-file-input').click()">导入 JSON / TXT</button>
+          <button class="btn" onclick="exportAllCharacters()">导出备份</button>
           <input type="file" id="char-file-input" accept=".json,.txt,.md" multiple style="display:none" onchange="importCharacterFiles(event)" />
         </div>
 
-        <!-- 角色编辑表单（展开时置顶显示，无需翻找） -->
-        <div id="char-editor-panel" style="display:none;background:rgba(241,245,249,0.95);padding:12px;border-radius:16px;border:1px solid #cbd5e1;flex-direction:column;gap:10px;">
-          <div style="font-weight:800;font-size:14px;color:#4f46e5;" id="char-editor-title">编辑角色预设</div>
+        <!-- 角色编辑表单 -->
+        <div id="char-editor-panel" style="display:none;background:var(--bg-base);padding:14px;border-radius:var(--radius-lg);border:1px solid var(--glass-border-strong);flex-direction:column;gap:10px;">
+          <div style="font-size:13.5px;font-weight:600;color:var(--accent);" id="char-editor-title">编辑角色</div>
           <input type="hidden" id="edit-char-id" />
-          <div class="form-group">
-            <label>角色名称 (name)</label>
-            <input class="form-input" id="edit-char-name" placeholder="例如：澜澜 / 银狼 / 旁白DM" />
+          <div class="field">
+            <label>名称 (name)</label>
+            <input class="input" id="edit-char-name" placeholder="例如：凯尔 / 旁白" />
           </div>
-          <div class="form-group">
-            <label>角色头像 (图片外链 或 从手机相册上传)</label>
-            <div style="display:flex;gap:6px;">
-              <input class="form-input" id="edit-char-avatar" placeholder="https://... 或点击右侧上传" />
-              <button class="btn" style="flex-shrink:0;" onclick="document.getElementById('avatar-upload-input').click()">📱 相册</button>
+          <div class="field">
+            <label>头像 (URL 或本地图片自动压缩)</label>
+            <div style="display:flex;gap:8px;">
+              <input class="input" id="edit-char-avatar" placeholder="https://... 或点击右侧选择图片" />
+              <button class="btn" style="flex-shrink:0;" onclick="document.getElementById('avatar-upload-input').click()">选图</button>
               <input type="file" id="avatar-upload-input" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)" />
             </div>
           </div>
-          <div class="form-group">
-            <label>人物设定、外貌与性格 (description / personality)</label>
-            <textarea class="form-textarea" id="edit-char-desc" placeholder="角色的性格特征、身份背景、外貌细节、与玩家的关系..."></textarea>
+          <div class="field">
+            <label>人物设定与性格特征 (description / personality)</label>
+            <textarea class="textarea" id="edit-char-desc" placeholder="体型外貌、性格特征、背景经历、与玩家的关系..."></textarea>
           </div>
-          <div class="form-group">
-            <label>专属扮演指令 / 说话风格 (system_prompt / scenario)</label>
-            <textarea class="form-textarea" id="edit-char-prompt" placeholder="例如：保持傲娇语气，动作和心理描写放在 *星号* 之间..."></textarea>
+          <div class="field">
+            <label>扮演指令与文风要求 (system_prompt)</label>
+            <textarea class="textarea" id="edit-char-prompt" placeholder="说话语气、动作细节描写要求..."></textarea>
           </div>
-          <div class="form-group">
+          <div class="field">
             <label>开场白 (first_mes)</label>
-            <textarea class="form-textarea" id="edit-char-firstmes" placeholder="角色进房或重开对话时的第一句台词..."></textarea>
+            <textarea class="textarea" id="edit-char-firstmes" placeholder="进入房间或重开时的初始台词..."></textarea>
           </div>
-          <div class="btn-row">
-            <button class="btn primary" onclick="saveCharacterFromEditor()">✅ 保存角色卡</button>
+          <div class="btn-group">
+            <button class="btn primary" onclick="saveCharacterFromEditor()">保存</button>
             <button class="btn" onclick="document.getElementById('char-editor-panel').style.display='none'">取消</button>
           </div>
         </div>
@@ -748,148 +767,180 @@
   <div class="modal-mask" id="world-modal">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title">🌍 世界观设定集 & 文游规则</div>
-        <button class="modal-close" onclick="closeModal('world-modal')">✕</button>
+        <span class="modal-title">世界观与玩家设定</span>
+        <button class="close-btn" onclick="closeModal('world-modal')">关闭</button>
       </div>
       <div class="modal-body">
-        <div class="hint-box">
-          支持导入 <strong>JSON 世界书 (World Info)、TXT 或 Markdown</strong>。可自由定义你在文游中的主角身份与世界规则。
-        </div>
-
-        <div class="btn-row">
-          <button class="btn" onclick="document.getElementById('world-file-input').click()">📂 导入世界观 (.json/.txt/.md)</button>
-          <button class="btn" onclick="exportWorldbook()">💾 导出世界观 JSON</button>
+        <div class="btn-group">
+          <button class="btn" onclick="document.getElementById('world-file-input').click()">导入世界书 (.json/.txt/.md)</button>
+          <button class="btn" onclick="exportWorldbook()">导出世界观</button>
           <input type="file" id="world-file-input" accept=".json,.txt,.md" style="display:none" onchange="importWorldFile(event)" />
         </div>
 
-        <div class="form-group">
-          <label>玩家扮演身份设定 (User Persona)</label>
-          <input class="form-input" id="user-name-input" placeholder="你的名字（如：旅行者 / 陆仁）" />
-          <textarea class="form-textarea" id="user-persona-input" style="min-height:58px;margin-top:5px;" placeholder="你在文游中的身份、外貌、初始能力或与各角色的关系..."></textarea>
+        <div class="field">
+          <label>你的称呼 ({{user}})</label>
+          <input class="input" id="user-name-input" placeholder="玩家姓名或代号" />
         </div>
 
-        <div class="form-group">
-          <label>全局世界观大纲 / 文游规则 (常驻生效)</label>
-          <textarea class="form-textarea" id="world-global-input" style="min-height:110px;" placeholder="输入大世界背景、境界体系、当前场景、或者文游状态栏输出格式..."></textarea>
+        <div class="field">
+          <label>你的人物设定 (User Persona)</label>
+          <textarea class="textarea" id="user-persona-input" style="min-height:64px;" placeholder="你在故事中的身份、外貌、能力或与角色的关系..."></textarea>
         </div>
 
-        <div class="form-group">
-          <label>关键词动态词条 (JSON 数组，对话提及关键词时自动触发)</label>
-          <textarea class="form-textarea" id="world-entries-input" style="min-height:95px;font-family:monospace;font-size:12px;" placeholder='[{"keys":["青云门","宗门"],"content":"青云门是正道第一大宗..."}]'></textarea>
+        <div class="field">
+          <label>常驻世界观大纲 / 文游规则</label>
+          <textarea class="textarea" id="world-global-input" style="min-height:110px;" placeholder="世界背景、当前场景、叙事风格或状态栏规则..."></textarea>
         </div>
 
-        <div class="btn-row">
-          <button class="btn primary" style="width:100%;" onclick="saveWorldSettings()">✅ 保存世界观与玩家设定</button>
+        <div class="field">
+          <label>关键词动态词条 (JSON 数组，提及关键词时才注入上下文，节省 Token)</label>
+          <textarea class="textarea" id="world-entries-input" style="min-height:90px;font-family:monospace;font-size:12px;"></textarea>
         </div>
+
+        <button class="btn primary" onclick="saveWorldSettings()">保存设定</button>
       </div>
     </div>
   </div>
 
-  <!-- 3. API 与界面设置弹窗 -->
-  <div class="modal-mask" id="settings-modal">
+  <!-- 3. 上下文记忆压缩弹窗 (防 Token 爆炸核心) -->
+  <div class="modal-mask" id="memory-modal">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title">⚙️ API 接口 & 外观存档设置</div>
-        <button class="modal-close" onclick="closeModal('settings-modal')">✕</button>
+        <span class="modal-title">上下文压缩与长线记忆</span>
+        <button class="close-btn" onclick="closeModal('memory-modal')">关闭</button>
       </div>
       <div class="modal-body">
-        <div class="form-group">
-          <label>一键填入常用 API 预设</label>
-          <div class="btn-row">
-            <button class="btn" onclick="fillApiPreset('https://api.deepseek.com/v1', 'deepseek-chat')">DeepSeek V3</button>
-            <button class="btn" onclick="fillApiPreset('https://api.deepseek.com/v1', 'deepseek-reasoner')">DeepSeek R1</button>
-            <button class="btn" onclick="fillApiPreset('https://api.siliconflow.cn/v1', 'deepseek-ai/DeepSeek-V3')">硅基流动</button>
+        <div class="note" id="memory-status-note">
+          通过将早期对话提炼为「前情提要」并归档旧消息，每次请求仅发送摘要与最近对话，彻底解决长篇文游 Token 暴涨问题。
+        </div>
+
+        <div class="btn-group">
+          <button class="btn primary" id="compress-btn" onclick="compressOldContext(false)">立即调用 AI 压缩早期对话</button>
+          <button class="btn" onclick="unarchiveAllMessages()">恢复全部归档消息</button>
+        </div>
+
+        <div class="field">
+          <label>自动压缩设置</label>
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+            <label style="display:flex;align-items:center;gap:6px;color:var(--text-primary);cursor:pointer;">
+              <input type="checkbox" id="auto-compress-toggle" /> 开启自动压缩
+            </label>
+            <span style="font-size:12px;color:var(--text-secondary);">保留最近条数：</span>
+            <input class="input" type="number" id="keep-recent-input" style="width:76px;padding:6px 10px;" min="4" max="60" />
+            <span style="font-size:12px;color:var(--text-secondary);">触发阈值：</span>
+            <input class="input" type="number" id="compress-threshold-input" style="width:76px;padding:6px 10px;" min="8" max="100" />
           </div>
         </div>
 
-        <div class="form-group">
-          <label>API Base URL (兼容所有 OpenAI 格式接口)</label>
-          <input class="form-input" id="api-url-input" placeholder="https://api.deepseek.com/v1" />
+        <div class="field">
+          <label>当前常驻前情提要 / 剧情状态记录 (可随时手动修改)</label>
+          <textarea class="textarea" id="story-summary-input" style="min-height:150px;" placeholder="目前尚无压缩摘要。你可以手动记录关键剧情、道具与人物关系，或点击上方按钮由 AI 自动总结前文。"></textarea>
         </div>
 
-        <div class="form-group">
-          <label>API Key (仅保存在你的手机浏览器本地)</label>
-          <input class="form-input" type="password" id="api-key-input" placeholder="sk-..." />
+        <button class="btn primary" onclick="saveMemorySettings()">保存记忆配置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. API 与全局设置弹窗 -->
+  <div class="modal-mask" id="settings-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">接口与全局设置</span>
+        <button class="close-btn" onclick="closeModal('settings-modal')">关闭</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label>快速填入接口预设</label>
+          <div class="btn-group">
+            <button class="btn" onclick="fillApiPreset('https://api.deepseek.com/v1', 'deepseek-chat')">DeepSeek V3</button>
+            <button class="btn" onclick="fillApiPreset('https://api.deepseek.com/v1', 'deepseek-reasoner')">DeepSeek R1</button>
+            <button class="btn" onclick="fillApiPreset('https://api.siliconflow.cn/v1', 'deepseek-ai/DeepSeek-V3')">SiliconFlow</button>
+          </div>
         </div>
 
-        <div class="form-group">
+        <div class="field">
+          <label>API Base URL</label>
+          <input class="input" id="api-url-input" placeholder="https://api.deepseek.com/v1" />
+        </div>
+
+        <div class="field">
+          <label>API Key (仅保存在本地设备)</label>
+          <input class="input" type="password" id="api-key-input" placeholder="sk-..." />
+        </div>
+
+        <div class="field">
           <label>模型名称 (Model)</label>
-          <input class="form-input" id="api-model-input" placeholder="deepseek-chat" />
+          <input class="input" id="api-model-input" placeholder="deepseek-chat" />
         </div>
 
-        <div class="form-group">
-          <label>温度 (0.1~1.5) & 携带上下文条数 & 流式输出</label>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <input class="form-input" type="number" step="0.05" id="api-temp-input" placeholder="0.9" style="width:90px;" />
-            <input class="form-input" type="number" id="api-context-input" placeholder="24" style="width:90px;" />
-            <label style="display:flex;align-items:center;gap:4px;font-size:12.5px;cursor:pointer;">
-              <input type="checkbox" id="api-stream-input" checked /> 流式打字机
+        <div class="field">
+          <label>温度 (Temperature) & 流式输出</label>
+          <div style="display:flex;gap:12px;align-items:center;">
+            <input class="input" type="number" step="0.05" id="api-temp-input" style="width:100px;" />
+            <label style="display:flex;align-items:center;gap:6px;color:var(--text-primary);cursor:pointer;">
+              <input type="checkbox" id="api-stream-input" /> 启用流式打字机响应
             </label>
           </div>
         </div>
 
-        <div class="form-group">
-          <label>自定义毛玻璃聊天背景壁纸</label>
-          <div class="btn-row">
-            <button class="btn" onclick="document.getElementById('bg-upload-input').click()">🖼️ 从手机相册换背景</button>
-            <button class="btn" onclick="resetBgWallpaper()">恢复默认渐变</button>
+        <div class="field">
+          <label>背景图层 (自动压缩防爆存储)</label>
+          <div class="btn-group">
+            <button class="btn" onclick="document.getElementById('bg-upload-input').click()">自定义背景壁纸</button>
+            <button class="btn" onclick="resetBgWallpaper()">恢复纯黑底色</button>
             <input type="file" id="bg-upload-input" accept="image/*" style="display:none" onchange="handleBgUpload(event)" />
           </div>
         </div>
 
-        <div class="form-group">
-          <label>文游剧本存档管理</label>
-          <div class="btn-row">
-            <button class="btn" onclick="exportChatHistory()">💾 导出剧本存档 (.json)</button>
-            <button class="btn" onclick="document.getElementById('history-import-input').click()">📂 读取剧本存档</button>
-            <button class="btn danger" onclick="clearChatHistory()">🗑️ 清空重开</button>
+        <div class="field">
+          <label>会话与存档管理</label>
+          <div class="btn-group">
+            <button class="btn" onclick="exportChatHistory()">导出完整存档 (.json)</button>
+            <button class="btn" onclick="document.getElementById('history-import-input').click()">读取存档</button>
+            <button class="btn danger" onclick="clearChatHistory()">清空当前对话重开</button>
             <input type="file" id="history-import-input" accept=".json" style="display:none" onchange="importChatHistory(event)" />
           </div>
         </div>
 
-        <div class="btn-row" style="margin-top:4px;">
-          <button class="btn primary" style="width:100%;" onclick="saveApiSettings()">✅ 保存全部设置</button>
-        </div>
+        <button class="btn primary" onclick="saveApiSettings()">保存设置</button>
       </div>
     </div>
   </div>
 
-  <!-- 4. 多行文本编辑/插入旁白专用毛玻璃弹窗 (替代简陋的系统 prompt) -->
+  <!-- 5. 文本编辑 / 插入旁白弹窗 -->
   <div class="modal-mask" id="text-editor-modal">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title" id="text-editor-title">✏️ 编辑内容</div>
-        <button class="modal-close" onclick="closeModal('text-editor-modal')">✕</button>
+        <span class="modal-title" id="text-editor-title">编辑内容</span>
+        <button class="close-btn" onclick="closeModal('text-editor-modal')">取消</button>
       </div>
       <div class="modal-body">
-        <textarea class="form-textarea" id="text-editor-textarea" style="min-height:160px;" placeholder="输入多行台词、动作描写或旁白剧情转折..."></textarea>
-        <div class="btn-row">
-          <button class="btn primary" style="flex:1;" onclick="confirmTextEditorModal()">✅ 确认保存</button>
-          <button class="btn" onclick="closeModal('text-editor-modal')">取消</button>
-        </div>
+        <textarea class="textarea" id="text-editor-textarea" style="min-height:160px;"></textarea>
+        <button class="btn primary" onclick="confirmTextEditorModal()">确认保存</button>
       </div>
     </div>
   </div>
 
   <script>
-    // ========= 默认初始数据 =========
+    // ========= 默认初始数据：冷峻黑豹男兽人 + 纯粹旁白 =========
     const DEFAULT_CHARS = [
       {
-        id: 'char_lanlan',
-        name: '澜澜',
+        id: 'char_kael',
+        name: '凯尔',
         avatar: '',
-        description: '蓝发女仆装的元气少女，性格温柔又带一点小傲娇，喜欢陪伴玩家聊天与异世界文游冒险。',
-        system_prompt: '你扮演澜澜。说话自然生动，神态与动作描写请放在 *星号* 之间，对玩家充满好奇与关心。',
-        first_mes: '*轻轻整理了一下蓝白相间的裙摆，笑眯眯地探出头看向你* 呼~ 这次脚本彻底修好啦！你可以点右上角「角色」导入你的 JSON 角色卡，或者在「设置」里填上 API Key 开始文游哦！',
+        description: '成年男性黑豹兽人，身高接近两米，覆着绸缎般紧实油亮的黑毛，肩背宽阔，体格极具爆发力与压迫感。金色的竖瞳在暗处泛着微光，左耳有一道旧伤缺口，身后的黑豹长尾平时低垂摆动。曾是边境精锐斥候，如今是独来独往的雇佣兵。性格沉稳冷峻、寡言重诺，对外人戒备心强，但对认可的搭档极为护短。',
+        system_prompt: '你扮演男性黑豹兽人「凯尔」。说话简练低沉，不搞浮夸卖萌。善于通过兽人特有的肢体语言（如黑豹耳朵的转动、金色竖瞳的收缩、长尾的摆动、喉咙深处低沉的呼噜声或威慑性的低吼）细腻展现情绪变化。动作与神态描写请放在 *星号* 之间。',
+        first_mes: '*篝火噼啪作响，高大的黑豹兽人坐在阴影与火光的交界处，正用一块鹿皮慢条斯理地擦拭着战术直刀。听到你的脚步声，他那只带着旧伤缺口的黑色兽耳微微一动，暗金色的竖瞳抬起看向你，身后的长尾在地面上轻轻扫过* 醒了？守夜算我的，把水囊拿去，再过半小时我们出发。',
         inRoom: true
       },
       {
-        id: 'char_dm',
-        name: '旁白·世界之声',
+        id: 'char_narrator',
+        name: '旁白',
         avatar: '',
-        description: '负责推进剧情、描绘环境氛围、判定玩家行动结果与扮演路人NPC的文游主持人（DM）。',
-        system_prompt: '你是文字冒险游戏（TRPG/文游）的旁白与地下城主（DM）。请用细腻的文学笔触描绘场景、光影、气氛以及玩家行动引发的后续事件，推动剧情发展，不要代替玩家做决定。',
-        first_mes: '【世界载入完成】欢迎来到幻境酒馆！点击底部的角色名字即可切换由谁回复你；点击「✨ 接话」可让多位角色轮流互动。',
+        description: '负责客观推进文游剧情、描绘环境氛围、判定行动结果以及扮演其它出场 NPC 的叙事者。',
+        system_prompt: '你是文游的叙事旁白与游戏主持人（DM）。请用克制、有画面感的文学笔触描绘场景、光影、声响与剧情发展，根据玩家行动给出合理的环境反馈与事件推进，绝不代替玩家做决定或替玩家说话。',
+        first_mes: '夜色笼罩着荒原边缘的旧营地，冷风掠过枯草，远处的山脊在月光下显出沉默的轮廓。',
         inRoom: true
       }
     ];
@@ -899,54 +950,63 @@
         baseUrl: 'https://api.deepseek.com/v1',
         apiKey: '',
         model: 'deepseek-chat',
-        temperature: 0.9,
-        maxContext: 24,
+        temperature: 0.85,
         stream: true
       },
+      memory: {
+        summary: '',
+        keepRecent: 12,
+        compressThreshold: 20,
+        autoCompress: false
+      },
       user: {
-        name: '旅行者',
-        persona: '一名意外踏入这片世界的旅人，思维敏捷。'
+        name: '搭档',
+        persona: '与凯尔同行的搭档，正在共同执行一场横跨荒原的委托任务。'
       },
       world: {
-        globalPrompt: '这是一个奇幻与日常交织的自由文游世界。支持多角色同场互动与剧情推进。当多位角色在场时，请严格以当前指定发言角色的身份自然回应。',
-        entries: [
-          { keys: ['酒馆', '幻境'], content: '「幻境酒馆」位于时空交界处，推开木门即可通往任何设定的副本世界。' }
-        ]
+        globalPrompt: '这是一个剑、火器与兽人种族并存的硬派奇幻冒险世界。叙事讲究真实感与张力，注重环境氛围与人物动作细节。',
+        entries: []
       },
       bgImage: '',
-      activeSpeakerId: 'char_lanlan',
+      activeSpeakerId: 'char_kael',
       characters: DEFAULT_CHARS,
       messages: [
         {
           id: 'msg_init_1',
           role: 'narrator',
-          senderId: 'char_dm',
-          senderName: '旁白·世界之声',
-          content: '【世界载入完成】欢迎来到幻境酒馆！点击右上角「👥 角色」即可导入你的 JSON 角色卡，点击底部角色名可自由指定下一句由谁接话。'
+          senderId: 'char_narrator',
+          senderName: '旁白',
+          content: '夜色笼罩着荒原边缘的旧营地，冷风掠过枯草，远处的山脊在月光下显出沉默的轮廓。',
+          archived: false
         },
         {
           id: 'msg_init_2',
           role: 'char',
-          senderId: 'char_lanlan',
-          senderName: '澜澜',
-          content: '*轻轻整理了一下蓝白相间的裙摆，笑眯眯地挥了挥手* 终于成功连上线啦！快去右上角导入你的 JSON 角色卡或者世界观试试看吧~'
+          senderId: 'char_kael',
+          senderName: '凯尔',
+          content: '*篝火噼啪作响，高大的黑豹兽人坐在阴影与火光的交界处，正用一块鹿皮慢条斯理地擦拭着战术直刀。听到你的脚步声，他那只带着旧伤缺口的黑色兽耳微微一动，暗金色的竖瞳抬起看向你，身后的长尾在地面上轻轻扫过* 醒了？守夜算我的，把水囊拿去，再过半小时我们出发。',
+          archived: false
         }
       ]
     };
 
+    const STORAGE_KEY = 'RP_STUDIO_GEMINI_V3';
     let state = loadState();
     let isGenerating = false;
+    let currentAbortController = null;
+    let selectedMsgIdx = -1;
     let textEditorMode = { type: 'edit', index: -1 };
 
     function loadState() {
       try {
-        const raw = localStorage.getItem('AI_RP_STUDIO_STATE_V2');
+        const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
         const parsed = JSON.parse(raw);
         return {
           ...DEFAULT_STATE,
           ...parsed,
           api: { ...DEFAULT_STATE.api, ...(parsed.api || {}) },
+          memory: { ...DEFAULT_STATE.memory, ...(parsed.memory || {}) },
           user: { ...DEFAULT_STATE.user, ...(parsed.user || {}) },
           world: { ...DEFAULT_STATE.world, ...(parsed.world || {}) }
         };
@@ -955,73 +1015,35 @@
       }
     }
 
-    功能 savestate() {
-      尝试 {
-        localStorage.setitem('AI_RP_STUDIO_STATE_V2', JSON.使字符串化(状态));
-      } 赶上 (e) {
-        警惕的('本地存储空间不足（可能是背景或头像图片过大），建议压缩图片或导出存档。');
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        alert('本地存储已满，请清理背景图或导出存档。');
       }
     }
 
-    // ========= 初始化渲染 =========
-    功能 initApp() {
-      applyBgWallpaper();
-      renderTopbar();
-      renderSpeakerBar();
-      renderMessages();
-      setupAutoResizeTextarea();
+    // ========= 工具函数：宏替换、正则安全转义、图片压缩 =========
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
     }
 
-    功能 applyBgWallpaper() {
-      ConstbgEl=文件.getElementById('app-bg');
-      如果 (状态.bgImage) {
-        bgEl.风格.BackgroundImage='url(${状态.bgImage})'；
-      } 其他 {
-        bgEl.风格.BackgroundImage='';
-      }
-}}}triggerBtn..innerHTMtriggerBtn.innerHTMtriggerBtn.innerHTM.innerHTMtriggerBtngetelement BYID('speakerbar')；bar=document.getElement BYID('speakerbar')；常量bar=document.getElement BYID('speakerbar')；bar=document.getElement BYID('speakerbar')；常量bar=document.getElement BYID('speakerbar')；innerHTMtriggerBtn.innerHTM='}triggerBtn.innerHTMtriggerBtn。innerHTM。innerHTMtriggerBtn。innerHTM。innerHTMtriggerBtn。innerHTM。innerHTMtriggerBtn.innerHTM
+    function escapeRegExp(str) {
+      return String(str || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
 
-.(){函数renderTopbar(){(){函数renderTopbar(){ConstinRoomChars=状态.字符.过滤器(c=>c.InRoom)；常量inRoomChars=状态.字符.筛选器(c=>c.InRoom)；inRoomChars=状态。字符。过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；){函数renderTopbar(){(){函数renderTopbar(){(){函数renderTopbar(){(){函数renderTopbar(){ConstinRoomChars=状态.字符.过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；inRoomChars=状态.字符.过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；){函数renderTopbar(){(){功能renderTopbar(){(){函数renderTopbar(){(){函数renderTopbar(){ConstinRoomChars=状态.字符.过滤器(c=>c.InRoom)；常量inRoomChars=状态.字符.筛选器(c=>c.InRoom)；inRoomChars=状态。字符。过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；){函数renderTopbar(){(){函数renderTopbar(){(){函数renderTopbar(){(){函数renderTopbar(){ConstinRoomChars=状态.字符.过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；inRoomChars=状态.字符.过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；){函数renderTopbar(){(){功能renderTopbar() {
-triggerBtninRoomChars=状态.字符。过滤器(c=>c.InRoom)；常量inRoomChars=状态.字符.过滤器(c=>c.InRoom)；inRoomChars=状态.字符.过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；=状态.字符.过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；inRoomChars=状态.字符.过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；字符.过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；inRoomChars=状态.字符.过滤器(c=>c.InRoom)；常数inRoomChars=状态.字符.过滤器(c=>c.InRoom)；
-c'点击右侧拉')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||；常量名称join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；const names = inRoomChars.map(c => c.name).join(' · ') || '点击右侧拉角色进房';
-文件。getElementById('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.length})'；('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent('房间标题显示')。textContent='幻境聊天室($('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.length})'；('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent('房间标题显示')。textContent=('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.length})'；('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent('房间标题显示')。textContent={inRoomChars。长度})'；文档。得到房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.length})'；('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-ElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.length})'；('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent==‘幻境聊天室(${inRoomChars.length})'；${inRoomChars.；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoo')。textContent('房间标题显示')。textContent={inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.length})'；('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent==‘幻境聊天室(${inRoomChars.length})'；${inRoomChars。；文档。getElementById('房间-标题-mChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.length})'；('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent==‘幻境聊天室(${inRoomChars。文件。getElementById('room-members-display')。textContent=名称；文件。getElementById('房间-成员-显示').textContent=')。textContent='幻境聊天室(${inRoomChars.Length})'；('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.length})'；('房间标题显示')。textContent='幻境聊天室(${inRoomChars。长度})'；文档。getElementById('房间-标题-显示')。textContent='幻境聊天室(${inRoomChars.length})'；('room-title-display').textContent='幻境聊天室(${inRoomChars.length})'；document.getElementById('room-title-display').textContent = =‘幻境聊天室(${inRoomChars.文件。getElementById('room-members-display')。textContent=名称；文件。getElementById('房间-成员-名称；('聊天室成员-显示').textContent=名称；文件。getElementById('room-members-display')。textContent=名称；('聊天室成员-显示').textContent=名称；文件。getElementById('room-members-display')。textContent=名称；('聊天室成员-显示').textContent=名称；文件。getElementById('room-members-display')。textContent=名称；('聊天室成员-显示').textContent=名称；文件。getElementById('房间-成员-显示')。textContent=名称；('聊天室成员-显示').textContent=名称；文件。得到})'；${inRoomChars.length})'；').textContent=名称；('聊天室成员-显示').textContent=名称；文件。getElementById('room-members-display')。textContent=名称；('聊天室成员-显示').textContent=名称；文件。getElementById('room-members-display')。textContent=名称；('聊天室成员-显示').textContent=名称；文件。getElementById('room-members-display')。textContent=名称；('聊天室成员-显示').textContent=名称；文件。getElementById('房间-成员-显示')。textContent=名称；('聊天室成员-显示').textContent=名称；文件。得到})'；${inRoomChars.length})`;
-.textContent.textContent
-    
+    function replaceMacros(text, charName) {
+      const uName = state.user.name || '玩家';
+      const cName = charName || '角色';
+      return String(text || '')
+        .replace(/\{\{user\}\}/gi, uName)
+        .replace(/<user>/gi, uName)
+        .replace(/\{\{char\}\}/gi, cName)
+        .replace(/<bot>/gi, cName);
+    }
 
-    // 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏// 底部多角色切换与催促接话栏
-功能
-酒吧'<span style="font-size:12px；color：#64748b；">👉权利要求点射右上角"👥角='
-酒吧。innerHTML="；bar.innerHTML="；.innerHTML=常数inRoomChars=state。字符。过滤器(c=>c.InRoom)；常数inRoomChars=state。字符。过滤器(c=>c.InRoom)；.innerHTML="；bar。innerHTML="；。innerHTML=常数inRoomChars=state。字符。过滤器(c=>c.InRoom)；常数inRoomChars=state。字符。过滤器(c=>c.InRoom)；="；bar.innerHTML="；.innerHTML=常数inRoomChars=state。字符。过滤器(c=>c.InRoom)；常数inRoomChars=state。字符。过滤器(c=>c.InRoom)；.innerHTML="；bar。innerHTML="；。innerHTML=常数inRoomChars=state。字符。过滤器(c=>c.InRoom)；常数inRoomChars=state。字符。过滤器(c=>c.InRoom)；
-Const inRoomChars=state。字符。过滤器(c=>c.InRoom)；常数inRoomChars=state。字符。过滤器(c=>c.InRoom)；inRoomChars=state.字符。过滤器(c=>c.InRoom)；const inRoomChars=state.characters.filter(c=>c.inRoom)；inRoomChars=state。字符。过滤器(c=>c.InRoom)；const inRoomChars=state.characters.filter(c=>c.inRoom)；inRoomChars=state.characters.filter(c=>c.inRoom)；const inRoomChars = state.characters.filter(c => c.inRoom);
-
-长度======0){if(inRoomChars.长度======0){(inRoomChars.长度======0){if(inRoomChars.长度======0){(inRoomChars.长度======0){if(inRoomChars.length======0){(inRoomChars。长度======0){if(inRoomChars.length======0){(inRoomChars。长度======0){if(inRoomChars.长度======0){(inRoomChars.长度======0){if(inRoomChars.长度======0){(inRoomChars。长度======0){if(inRoomChars。长度======0){(inRoomChars。长度======0){if(inRoomChars.length====0){
-酒吧。innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；bar.innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；.innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；bar.innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；bar.innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角get元素"font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；bar.innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；.innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；bar.innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；pan>'；.innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间<平底锅
-返回；返回；
-      }
-
-！inRoomChars！inRoomChars.id===state.activeSpeakerId)){(！inRoomChars.some(c=>c.id===state.activeSpeakerId)){if(！inRoomChars.some(c=>c.id===state.activeSpeakerId)){(！inRoomChars.some(c=>c.ID===state.activeSpeakerId)){if(！inRoomChars.some(c=>c.id===state.activeSpeakerId)){(！inRoomChars.some(c=>c.id===state.activeSpeakerId)){if(！inRoomChars.some(c=>c.id===state.activeSpeakerId)){id===state.activeSpeakerId)){(！inRoomChars.some(c=>c.id===state.activeSpeakerId)){if(！inRoomChars.some(c=>c.id===state.activeSpeakerId'点击右侧拉角色进房map(c=>c.name).join('
-'；=inRoomChars.map(c=>c.name).join(/span>'；bar。innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；.innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；bar.innerHTML='<span style="font-size:12px；color：#64748b；">👉 请先点击右上角"👥 角色"拉人进入房间</span>'；
-      }
-
-inRoomChars。foreach(c=>{inRoomChars.foreach(c=>{.foreach(c=>{inRoomChars.foreach(c=>{.forEach(c=>{inRoomChars.forEach(c=>{.forEach(c=>{inRoomChars.forEach(c=>{(c=>{inRoomChars.foreach(c=>{.foreach(c=>{inRoomChars.foreach(c=>{.forEach(c=>{inRoomChars.forEach(c=>{.forEach(c=>{inRoomChars.forEach(c=>{(c=>{inRoomChars.foreach(c=>{.foreach(c=>{inRoomChars.foreach(c=>{.forEach(c=>{inRoomChars.forEach(c=>{.forEach(c=>{inRoomChars.forEach(c=>{(c=>{inRoomChars.foreach(c=>{.foreach(c=>{inRoomChars.foreach(c=>{.forEacH(c=>{inRoomChars.foreach(c=>{.foreach(c=>{inRoomChars.foreach(c=>{
-常量芯片=document.createElement('div')；常量芯片=文件。createElement('div')；chip=文档.createElement('div')；createElement('div')；chip=document。createElement('div')；常量chip=文档.createElement('div')；chip=文档.createElement('div')；常量chip=文档。createElement('div')；=document.createElement('div')；常量芯片=文件。createElement('div')；chip=文档.createElement('div')；createElement('div')；chip=document。createElement('div')；常量chip=文档.createElement('div')；chip=文档。createElement('div')；const chi=document.create元素('div')；常量芯片=文件。createElement('div')；chip=文档。createElement('div')；const chip=document.createElement('div')；chip=document.createElement('div')；const chip=文档。createElement('div')；chip=文档.createElement('div')；常量chip=文档。createElement('div')；=document.createElement('div')；常量芯片=文件。createElement('div')；chip=文档。createElement('div')；const chip=document.createElement('div')；chip=document.createElement('div')；const chip=文档。createElement('div')；chip=p=document。createElement('div')；('div')；const chip=document.createElement('div')；
-芯片。className='扬声器芯片'+(c.ID===state.activeSpeakerId？'active'：")；chip.className='speaker-chip'+(c.id===state.activeSpeakerId？'active'：")；.className='speaker-chip'+(c.id===state.const avatarHtml=c。avatar const avatarHtml=c。头像“活动”：")；芯片。className='扬声器-芯片'+(c.id===state.activeSpeakerId？'active'：")；='扬声器芯片'+(c.ID===state.activeSpeakerId？'active'：")；chip.className='speaker-chip'+(c.id===state.activeSpeakerId？'active'：")；.className='speaker-chip'+(c.id===state.const avatarHtml=c.avatar const avatarHtml=c.const ava=='扬声器芯片'+(c.ID===state.activeSpeakerId？'active'：")；chip.className='speaker-chip'+(c.id===state.activeSpeakerId？'active'：")；.className='speaker-chip'+(c.id===state.const avatarHtml=c。avatar const avatarHtml=c。头像“活动”：")；芯片。className='扬声器-芯片'+(c.id===state.activeSpeakerId？'active'：")；='扬声器芯片'+(c.ID===state.activeSpeakerId？'active'：")；chip.className='speaker-chip'+(c.id===state.activeSpeakerId？'active'：")；.className='speaker-chip'+(c.id===state.const avatarHtml=c.avatar const avatarHtml=c.const ava='扬声器芯片'+(c.ID===state.activeSpeakerId？'active'：")；chip.className='speaker-chip'+(c.id===state.activeSpeakerId？'active'：")；.className='speaker-chip'+(c.id===state.const avatarHtml=c。avatar const avatarHtml=c。头像“活动”：")；芯片。className='扬声器-芯片'+(c.id===state.activeSpeakerId？'active'：")；='扬声器芯片'+(c.ID===state.activeSpeakerId？'active'：")；chip.className='speaker-chip'+(c.id===state.activeSpeakerId？'active'：")；.className='speaker-chip'+(c.id===state.const avatarHtml=c.avatar const avatarHtml=c.const tarHtml=c.avatar+(c.id===state。activeSpeakerId？'active'：")；chip。className='speaker-chip'+(c.ID===状态。ActiveSpeakerId？'active'：")；.className='扬声器芯片'+(c.ID===state.Const avatarHtml=c.avatar const avatarHtml=c.头像“活动”：")；芯片。className='扬声器-芯片'+(c.id===state.activeSpeakerId？'active'：")；='扬声器芯片'+(c.ID===state.activeSpeakerId？'active'：")；chip.className='speaker-chip'+(c.id===state.activeSpeakerId？'active'：")；.className='speaker-chip'+(c.id===state.const avatarHtml=c.avatar const avatarHtml=c.const tarHtml=c.avatar const avatarHtml=c.AVatar'active'：")；芯片。className='扬声器-芯片'+(c.id===state.activeSpeakerId？'active'：")；=c.化身const avatarHtml=c.const avatarHtml=c.avatar const avatarHtml=c.头像'active'：")；芯片。className='speaker-chip'+(c.ID===state.activeSpeakerId？“活动”：“”)；常量avatarHtml=c.Avatar'active'：")；chip。className='扬声器-芯片'+(c.ID===state.activeSpeakerId？'active'：")；=c.化身const avatarHtml=c.const avatarHtml=c.avatar const avatarHtml=c.const avatarHtml=c.avatar const avatarHtml=c.头像'活动'：")；芯片。className='扬声器芯片'+(c.id===state.activeSpeakerId？'active'：")；
-const avatarHtml=c.avatar const avatarHtml=c.avatar
-？'<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<im g src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>"<img src="${c.avatar}"alt=""/>'
-：'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；`<span>🎭</span>`;'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；'<span>🎭</span>'；
-芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；.innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；.innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；='${avatarHtml}<span>${escapeHtml(c.钠='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；=me)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；.innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；.innerHTML='${avatarHtml}<span>${escapeHtml(c.name)}</span>'；芯片。innerHTML=常量名称=inRoomChars.地图(c=>c.姓名).参加('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.地图(c=>c.姓名).参加('·')||'点击右侧拉角色进房'；=inRoomChars.地图(c=>c.姓名).参加('·')||；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；.innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；芯片。innerHTML='${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；.innerHTML='${avatarHtml}<span>${escapeHtml(c.name)}</span>'；芯片。innerHTML=常量名称=inRoomChars.地图(c=>c.姓名).参加('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.地图(c=>c.姓名).参加('·')||'点击右侧拉角色进房'；=inRoomChars.地图(c=>c.姓名).参加('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.namE).连接('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；=inRoomChars.map(c=>c.name).join('·')||'点击右侧拉角色进房'；常量名称=inRoomChars.map(c=>c.name).join('·')||'点击右侧${avatarHtml}<span>${escapeHtml(c.名称)}</span>'；
-
-芯片。onClick=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{.onClick=()=>{chip.onClick=()=>{
-状态。activeSpeakerId=c.id；状态。activeSpeakerId=c。身份标识；。activeSpeakerId=c.id；状态。activeSpeakerId=c.id；=c.id；状态。activeSpeakerId=c。身份标识；。activeSpeakerId=c.id；状态。activeSpeakerId=c.id；=c.id；状态。activeSpeakerId=c。身份标识；。activeSpeakerId=c.id；状态。activeSpeakerId=c.id；=c.id；状态。activeSpeakerId=c。身份标识；。activeSpeakerId=c.id；状态。activeSpeakerId=c.id；=c.id；状态。activeSpeakerId=c。身份标识；。activeSpeakerId=c.id；状态。activeSpeakerId=c.id；=c.id；状态。activeSpeakerId=c。身份标识；。activeSpeakerId=c.id；状态。activeSpeakerId=c.id；=c.id；状态。activeSpeakerId=c。身份标识；。activeSpeakerId=c.id；状态。activeSpeakerId=c.id；=c.id；状态。activeSpeakerId=c。身份标识；。activeSpeakerId=c.id；状态。activeSpeakerId=c.id；
-.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格.背景='rgba(254，243，199，0.9)'；风格.背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格.背景='rgba(254，243，199，0.9)'；
-renderSpeakerBar()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar();()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar()；()；renderSpeakerBar();
-        };
-
-酒吧。appendChild(chip)；bar。appendChild(chip)；bar。appendChild(chip)；bar.AppendChild(chip)；.appendChild(chip)；bar.appendChild(chip)；bar.appendChild(chip);bar.appendChild(chip);(chip)；bar。appendChild(chip)；bar。appendChild(chip)；bar.AppendChild(chip)；.appendChild(chip)；bar.appendChild(chip)；bar.appendChild(chip);bar.appendChild(chip);(chip)；bar。appendChild(chip)；bar。appendChild(chip)；bar.AppendChild(chip)；.appendChild(chip)；bar.appendChild(chip)；bar.appendChild(chip);bar.appendChild(chip);(chip)；bar。appendChild(chip)；bar.AppendChild(芯片)；酒吧。appendChild(chip)；。appendChild(chip)；bar。appendChild(chip)；bar。appendChild(chip)；bar.AppendChild(chip)；
-      });
-
-Const triggerBtn=文档。createElement('div')；常量triggerBtn=文档.createElement('div')；triggerBtn=文档。createElement('div')；常量triggerBtn=文档.createElement('div')；triggerBtn=文档。createElement('div')；常量triggerBtn=document.createElement('div')；triggerBtn=document。createElement('div')；常量triggerBtn=document。createElement('div')；triggerBtn=document。createElement('div')；常量triggerBtn=文档.createElement('div')；triggerBtn=文档。createElement('div')；常量triggerBtn=文档.createElement('div')；triggerBtn=文档。createElement('div')；常量triggerBttriggerBtn=文档。createElement('div')；常量triggerBtn=文档.createElement('div')；triggerBtn=文档。createElement('div')；常量triggerBtn=文档.createElement('div')；triggerBtn=文档。createElement('div')；常量triggerBtn=document.createElement('div')；triggerBtn=document。createElement('div')；常量triggerBtn=document。createElement('div')；triggerBtn=document。createElement('div')；常量triggerBtn=文档.createElement('div')；triggerBtn=文档。createElement('div')；常量triggerBtn=文档.createElement('div')；triggerBtn=n=文档。createElement('div')；triggerBtn=文档T('div')；常量triggerBtn=document.createElement('div')；('div')；常量triggerBtn=document.createElement('div')；triggerBtn=document。createElement('div')；常量triggerBtn=document。createElement('div')；
-triggerBtn.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；TriggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；.className='扬声器芯片'；triggerBtn.className='扬声器芯片'；
-triggerBtn.风格。背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格.背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格.背景='rgba(254，243，1.风格。背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格.背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景='rgba(254，243，199，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格。背景=99，0.9)'；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格.背景='rgba(254，243，199，0.9)'；；.风格.背景='rgba(254，243，199，0.9)'； triggerBtn.风格.背景='rgba(254，243，199，0.9)'；
-triggerBtn
-triggerBtn。innerHTMtriggerBtn。innerHTM。innerHTMtriggerBtn。innerHTM。innerHTMtriggerBtn。innerHTM。innerHTMtriggerBtn。innerHTM.innerHTMtriggerBtn。innerHTM。innerHTMtriggerBtn。innerHTM。innerHTMtriggerBtn.innerHTM.innerHTMtriggerBtn.innerHTM
+    function compressImageFile(file, maxEdge, quality)
